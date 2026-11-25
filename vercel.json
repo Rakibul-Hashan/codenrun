@@ -1,0 +1,15 @@
+{
+  "headers": [
+    {
+      "source": "/clang/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/clang/runtime-22.1.8-br/bin/(.*)",
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" },
+        { "key": "Content-Type", "value": "application/octet-stream" }
+      ]
+    }
+  ]
+}

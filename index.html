@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en" data-ui="sea">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codenrun | C Playground</title>
+<link rel="icon" type="image/png" href="./favicon.png">
+<script>
+// Pick the theme before first paint: saved choice, else the viewer's theme, else the OS setting.
+(function () {
+  var ui = null;
+  try { ui = JSON.parse(localStorage.getItem('cplay.ui')); } catch (e) {}
+  if (ui !== 'sea' && ui !== 'sketch') {
+    var t = document.documentElement.getAttribute('data-theme');
+    ui = t === 'light' ? 'sketch' : t === 'dark' ? 'sea' : (matchMedia('(prefers-color-scheme: light)').matches ? 'sketch' : 'sea');
+  }
+  document.documentElement.setAttribute('data-ui', ui);
+})();
+</script>
+<style> .CodeMirror {  font-family: monospace; height: 300px; color: black; direction: ltr; }  .CodeMirror-lines { padding: 4px 0;  } .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like { padding: 0 4px;  } .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler { background-color: white;  }  .CodeMirror-gutters { border-right: 1px solid #ddd; background-color: #f7f7f7; white-space: nowrap; } .CodeMirror-linenumbers {} .CodeMirror-linenumber { padding: 0 3px 0 5px; min-width: 20px; text-align: right; color: #999; white-space: nowrap; } .CodeMirror-guttermarker { color: black; } .CodeMirror-guttermarker-subtle { color: #999; }  .CodeMirror-cursor { border-left: 1px solid black; border-right: none; width: 0; }  .CodeMirror div.CodeMirror-secondarycursor { border-left: 1px solid silver; } .cm-fat-cursor .CodeMirror-cursor { width: auto; border: 0 !important; background: #7e7; } .cm-fat-cursor div.CodeMirror-cursors { z-index: 1; } .cm-fat-cursor .CodeMirror-line::selection, .cm-fat-cursor .CodeMirror-line > span::selection, .cm-fat-cursor .CodeMirror-line > span > span::selection { background: transparent; } .cm-fat-cursor .CodeMirror-line::-moz-selection, .cm-fat-cursor .CodeMirror-line > span::-moz-selection, .cm-fat-cursor .CodeMirror-line > span > span::-moz-selection { background: transparent; } .cm-fat-cursor { caret-color: transparent; } @-moz-keyframes blink { 0% {} 50% { background-color: transparent; } 100% {} } @-webkit-keyframes blink { 0% {} 50% { background-color: transparent; } 100% {} } @keyframes blink { 0% {} 50% { background-color: transparent; } 100% {} }  .CodeMirror-overwrite .CodeMirror-cursor {} .cm-tab { display: inline-block; text-decoration: inherit; } .CodeMirror-rulers { position: absolute; left: 0; right: 0; top: -50px; bottom: 0; overflow: hidden; } .CodeMirror-ruler { border-left: 1px solid #ccc; top: 0; bottom: 0; position: absolute; }  .cm-s-default .cm-header {color: blue;} .cm-s-default .cm-quote {color: #090;} .cm-negative {color: #d44;} .cm-positive {color: #292;} .cm-header, .cm-strong {font-weight: bold;} .cm-em {font-style: italic;} .cm-link {text-decoration: underline;} .cm-strikethrough {text-decoration: line-through;} .cm-s-default .cm-keyword {color: #708;} .cm-s-default .cm-atom {color: #219;} .cm-s-default .cm-number {color: #164;} .cm-s-default .cm-def {color: #00f;} .cm-s-default .cm-variable, .cm-s-default .cm-punctuation, .cm-s-default .cm-property, .cm-s-default .cm-operator {} .cm-s-default .cm-variable-2 {color: #05a;} .cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;} .cm-s-default .cm-comment {color: #a50;} .cm-s-default .cm-string {color: #a11;} .cm-s-default .cm-string-2 {color: #f50;} .cm-s-default .cm-meta {color: #555;} .cm-s-default .cm-qualifier {color: #555;} .cm-s-default .cm-builtin {color: #30a;} .cm-s-default .cm-bracket {color: #997;} .cm-s-default .cm-tag {color: #170;} .cm-s-default .cm-attribute {color: #00c;} .cm-s-default .cm-hr {color: #999;} .cm-s-default .cm-link {color: #00c;} .cm-s-default .cm-error {color: #f00;} .cm-invalidchar {color: #f00;} .CodeMirror-composing { border-bottom: 2px solid; }  div.CodeMirror span.CodeMirror-matchingbracket {color: #0b0;} div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #a22;} .CodeMirror-matchingtag { background: rgba(255, 150, 0, .3); } .CodeMirror-activeline-background {background: #e8f2ff;}   .CodeMirror { position: relative; overflow: hidden; background: white; } .CodeMirror-scroll { overflow: scroll !important;    margin-bottom: -50px; margin-right: -50px; padding-bottom: 50px; height: 100%; outline: none;  position: relative; z-index: 0; } .CodeMirror-sizer { position: relative; border-right: 50px solid transparent; }  .CodeMirror-vscrollbar, .CodeMirror-hscrollbar, .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler { position: absolute; z-index: 6; display: none; outline: none; } .CodeMirror-vscrollbar { right: 0; top: 0; overflow-x: hidden; overflow-y: scroll; } .CodeMirror-hscrollbar { bottom: 0; left: 0; overflow-y: hidden; overflow-x: scroll; } .CodeMirror-scrollbar-filler { right: 0; bottom: 0; } .CodeMirror-gutter-filler { left: 0; bottom: 0; } .CodeMirror-gutters { position: absolute; left: 0; top: 0; min-height: 100%; z-index: 3; } .CodeMirror-gutter { white-space: normal; height: 100%; display: inline-block; vertical-align: top; margin-bottom: -50px; } .CodeMirror-gutter-wrapper { position: absolute; z-index: 4; background: none !important; border: none !important; } .CodeMirror-gutter-background { position: absolute; top: 0; bottom: 0; z-index: 4; } .CodeMirror-gutter-elt { position: absolute; cursor: default; z-index: 4; } .CodeMirror-gutter-wrapper ::selection { background-color: transparent } .CodeMirror-gutter-wrapper ::-moz-selection { background-color: transparent } .CodeMirror-lines { cursor: text; min-height: 1px;  } .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {  -moz-border-radius: 0; -webkit-border-radius: 0; border-radius: 0; border-width: 0; background: transparent; font-family: inherit; font-size: inherit; margin: 0; white-space: pre; word-wrap: normal; line-height: inherit; color: inherit; z-index: 2; position: relative; overflow: visible; -webkit-tap-highlight-color: transparent; -webkit-font-variant-ligatures: contextual; font-variant-ligatures: contextual; } .CodeMirror-wrap pre.CodeMirror-line, .CodeMirror-wrap pre.CodeMirror-line-like { word-wrap: break-word; white-space: pre-wrap; word-break: normal; } .CodeMirror-linebackground { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 0; } .CodeMirror-linewidget { position: relative; z-index: 2; padding: 0.1px;  } .CodeMirror-widget {} .CodeMirror-rtl pre { direction: rtl; } .CodeMirror-code { outline: none; }  .CodeMirror-scroll, .CodeMirror-sizer, .CodeMirror-gutter, .CodeMirror-gutters, .CodeMirror-linenumber { -moz-box-sizing: content-box; box-sizing: content-box; } .CodeMirror-measure { position: absolute; width: 100%; height: 0; overflow: hidden; visibility: hidden; } .CodeMirror-cursor { position: absolute; pointer-events: none; } .CodeMirror-measure pre { position: static; } div.CodeMirror-cursors { visibility: hidden; position: relative; z-index: 3; } div.CodeMirror-dragcursors { visibility: visible; } .CodeMirror-focused div.CodeMirror-cursors { visibility: visible; } .CodeMirror-selected { background: #d9d9d9; } .CodeMirror-focused .CodeMirror-selected { background: #d7d4f0; } .CodeMirror-crosshair { cursor: crosshair; } .CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: #d7d4f0; } .CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #d7d4f0; } .cm-searching { background-color: #ffa; background-color: rgba(255, 255, 0, .4); }  .cm-force-border { padding-right: .1px; } @media print {  .CodeMirror div.CodeMirror-cursors { visibility: hidden; } }  .cm-tab-wrap-hack:after { content: ''; }  span.CodeMirror-selectedtext { background: none; } .CodeMirror-hints { position: absolute; z-index: 10; overflow: hidden; list-style: none; margin: 0; padding: 2px; -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2); -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2); box-shadow: 2px 3px 5px rgba(0,0,0,.2); border-radius: 3px; border: 1px solid silver; background: white; font-size: 90%; font-family: monospace; max-height: 20em; overflow-y: auto; box-sizing: border-box; } .CodeMirror-hint { margin: 0; padding: 0 4px; border-radius: 2px; white-space: pre; color: black; cursor: pointer; } li.CodeMirror-hint-active { background: #08f; color: white; } .CodeMirror-dialog { position: absolute; left: 0; right: 0; background: inherit; z-index: 15; padding: .1em .8em; overflow: hidden; color: inherit; } .CodeMirror-dialog-top { border-bottom: 1px solid #eee; top: 0; } .CodeMirror-dialog-bottom { border-top: 1px solid #eee; bottom: 0; } .CodeMirror-dialog input { border: none; outline: none; background: transparent; width: 20em; color: inherit; font-family: monospace; } .CodeMirror-dialog button { font-size: 70%; } </style>
+<style>
+/*
+VOICE: a working tool. Dark "deep sea" for long sessions; light is a playful sketchbook.
+IDEA: source on the left, what the machine did on the right, like facing pages of a notebook.
+PICTURE: the editor and live terminal themselves, filling the screen under a slim bar.
+COLOUR and TYPE: sea #0a2540 / sky / signal pink; sketchbook: dotted paper, ink #1f2a44, marker pink, highlighter yellow; Hanken Grotesk or Patrick Hand + Caveat, JetBrains Mono for code.
+LAYOUT: bar, two panes with a draggable divider; stacks editor over output below 760px.
+*/
+:root{color-scheme:dark;
+  --bg:#0a2540;--panel:#0c2d4d;--edit:#081d33;--line:#16406a;--ink:#eaf4ff;--mute:#8fb0cf;--sky:#8fd3ff;--pink:#ff5c8a;--ok:#7be0a8;--warn:#ffd27a;
+  --term:#061a2e;--termInk:#e6f1fc;--err:#ff8fae;--on-pink:#fff;
+  --ui:'Hanken Grotesk',system-ui,sans-serif;--head:'Hanken Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --fs:14px;--r:8px;--bw:1px;--shadow:none;--paneGap:0px}
+:root[data-ui=sketch]{color-scheme:light;
+  --bg:#fbfaf6;--panel:#ffffff;--edit:#fffefb;--line:#1f2a44;--ink:#1f2a44;--mute:#5b6683;--sky:#1f6fd1;--pink:#ff4f7e;--ok:#17834b;--warn:#b86e00;
+  --term:#fffbe6;--termInk:#1f2a44;--err:#d61f55;--on-pink:#fff;
+  --ui:'Patrick Hand','Comic Sans MS',system-ui,sans-serif;--head:'Caveat','Patrick Hand',cursive;
+  --r:255px 14px 225px 14px/14px 225px 14px 255px;--bw:2px;--shadow:3px 3px 0 #1f2a44;--paneGap:14px}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui);overflow:hidden;display:flex;flex-direction:column}
+[data-ui=sketch] body{font-size:17px;background-image:radial-gradient(#cdd3e2 1.1px,transparent 1.3px);background-size:20px 20px}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.ic{width:17px;height:17px;flex:none;display:inline-block;vertical-align:middle}
+.ic svg{width:100%;height:100%;display:block}
+[data-ui=sketch] .ic svg{stroke-width:2.25}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:10px;padding:10px max(16px,2vw);border-bottom:1px solid var(--line);flex-wrap:wrap}
+[data-ui=sketch] .bar{border-bottom:0;padding-bottom:4px}
+.brand{display:flex;align-items:center;gap:11px;margin-right:auto}
+.brand h1{margin:0;line-height:0}
+.brand-logo{display:block;width:158px;height:auto;filter:brightness(0) invert(1)}
+[data-ui=sketch] .brand-logo{filter:none}
+.brand small{display:block;color:var(--mute);font-size:13px}
+[data-ui=sketch] .brand small{font-size:15px}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn,.sel{height:40px;border:var(--bw) solid var(--line);background:var(--panel);border-radius:var(--r);padding:0 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-size:14px;white-space:nowrap;box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s}
+[data-ui=sketch] .btn,[data-ui=sketch] .sel{font-size:17px}
+.btn:hover,.sel:hover{border-color:#2b6aa3}
+[data-ui=sketch] .btn:hover,[data-ui=sketch] .sel:hover{border-color:var(--ink);transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+[data-ui=sketch] .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.sel{appearance:none;padding-right:32px;background-image:linear-gradient(45deg,transparent 50%,var(--mute) 50%),linear-gradient(135deg,var(--mute) 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.run{background:var(--pink);border-color:var(--pink);color:var(--on-pink);font-weight:600;padding:0 18px;min-width:104px;justify-content:center}
+[data-ui=sketch] .run{border-color:var(--ink);font-weight:400;transform:rotate(-1deg)}
+.run:hover{filter:brightness(1.06)}
+.run.stop{background:#fff;color:#0a2540;border-color:#fff}
+[data-ui=sketch] .run.stop{background:#ffe066;color:var(--ink);border-color:var(--ink)}
+.icon-only{width:40px;padding:0;justify-content:center}
+
+/* language switch */
+.seg{display:inline-flex;height:40px;border:var(--bw) solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel);box-shadow:var(--shadow)}
+.seg button{border:0;background:none;padding:0 14px;cursor:pointer;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--mute)}
+.seg button[aria-pressed=true]{background:var(--sky);color:#06223d}
+[data-ui=sketch] .seg button[aria-pressed=true]{background:#ffe066;color:var(--ink)}
+.seg button+button{border-left:var(--bw) solid var(--line)}
+
+.opts{position:relative}
+.opts summary{list-style:none}
+.opts summary::-webkit-details-marker{display:none}
+.pop{position:absolute;right:0;top:48px;z-index:20;width:300px;background:var(--panel);border:var(--bw) solid #2b6aa3;border-radius:10px;padding:14px;display:grid;gap:12px;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+[data-ui=sketch] .pop{border-color:var(--ink);border-radius:var(--r);box-shadow:5px 5px 0 var(--ink)}
+.pop label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+[data-ui=sketch] .pop label{font-size:16px}
+.pop .row{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14px}
+.pop input[type=text]{height:40px;border-radius:8px;border:var(--bw) solid var(--line);background:var(--edit);padding:0 10px;font-family:var(--mono);font-size:14px}
+.pop .sel{width:100%;background-color:var(--edit);box-shadow:none}
+.pop input[type=checkbox]{width:18px;height:18px;accent-color:var(--pink)}
+.fsz{display:flex;gap:6px}.fsz .btn{flex:1;justify-content:center;box-shadow:none}
+
+/* panes */
+.work{flex:1;display:grid;grid-template-columns:minmax(0,calc(var(--split,58%) - 4px)) 8px minmax(0,1fr);min-height:0}
+[data-ui=sketch] .work{padding:10px max(16px,2vw) 12px;column-gap:6px;grid-template-columns:minmax(0,calc(var(--split,58%) - 10px)) 8px minmax(0,1fr)}
+.pane{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+[data-ui=sketch] .pane{border:2px solid var(--ink);border-radius:18px 6px 16px 8px/8px 16px 6px 18px;box-shadow:4px 5px 0 var(--ink);overflow:hidden}
+.head{height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line);font-size:14px;color:var(--mute);flex:none}
+[data-ui=sketch] .head{border-bottom:2px dashed var(--ink);font-size:17px}
+.tab{color:var(--ink);font-family:var(--mono);font-size:13px;display:flex;align-items:center;gap:8px}
+.tab i{width:8px;height:8px;border-radius:50%;background:var(--sky);display:inline-block}
+.tab i.dirty{background:var(--warn)}
+[data-ui=sketch] .tab b{font-weight:500;background:linear-gradient(transparent 55%,#ffe066 55%)}
+.tab b{font-weight:500}
+.head .sp{margin-left:auto}
+.head .title{color:var(--ink);display:flex;align-items:center;gap:7px}
+.mini{height:32px;padding:0 10px;font-size:13px;border-radius:6px;box-shadow:none}
+[data-ui=sketch] .mini{border-radius:var(--r);font-size:16px;box-shadow:2px 2px 0 var(--ink)}
+.mini .ic{width:15px;height:15px}
+.gutter{background:var(--line);cursor:col-resize;position:relative}
+[data-ui=sketch] .gutter{background:none}
+[data-ui=sketch] .gutter::before{content:"";position:absolute;left:3px;top:20%;bottom:20%;border-left:2px dashed #9aa3ba}
+.gutter::after{content:"";position:absolute;inset:0 -4px}
+.gutter:hover,.gutter.drag{background:var(--sky)}
+[data-ui=sketch] .gutter:hover::before,[data-ui=sketch] .gutter.drag::before{border-color:var(--pink)}
+#ed{flex:1;min-height:0;background:var(--edit)}
+
+/* editor: deep sea */
+.CodeMirror{height:100%;font-family:var(--mono);font-size:var(--fs);line-height:1.6;background:var(--edit);color:#dce9f7}
+.cm-s-cc .CodeMirror-gutters{background:var(--edit);border-right:1px solid var(--line)}
+.cm-s-cc .CodeMirror-linenumber{color:#4f7398;padding:0 10px 0 6px}
+.cm-s-cc .CodeMirror-cursor{border-left:2px solid var(--pink)}
+.cm-s-cc .CodeMirror-activeline-background{background:rgba(143,211,255,.06)}
+.cm-s-cc .CodeMirror-activeline-gutter .CodeMirror-linenumber{color:var(--sky)}
+.cm-s-cc div.CodeMirror-selected,.cm-s-cc.CodeMirror-focused div.CodeMirror-selected{background:rgba(143,211,255,.22)}
+.cm-s-cc .cm-keyword{color:var(--pink)}
+.cm-s-cc .cm-type,.cm-s-cc .cm-variable-3{color:#c3a6ff}
+.cm-s-cc .cm-meta{color:#ff9ab6}
+.cm-s-cc .cm-string,.cm-s-cc .cm-string-2{color:#9be7b5}
+.cm-s-cc .cm-number,.cm-s-cc .cm-atom{color:var(--warn)}
+.cm-s-cc .cm-comment{color:#6a8db0;font-style:italic}
+.cm-s-cc .cm-def{color:var(--sky)}
+.cm-s-cc .cm-variable{color:#dce9f7}
+.cm-s-cc .cm-operator{color:#a9c6e3}
+.cm-s-cc .cm-builtin{color:var(--sky)}
+.cm-s-cc .CodeMirror-matchingbracket{color:#fff!important;background:rgba(255,92,138,.35)}
+/* editor: sketchbook (notebook margin line, ink and marker colours) */
+[data-ui=sketch] .CodeMirror{color:#1f2a44}
+[data-ui=sketch] .cm-s-cc .CodeMirror-gutters{border-right:2px solid #ff9db6}
+[data-ui=sketch] .cm-s-cc .cm-variable{color:#1f2a44}
+[data-ui=sketch] .cm-s-cc .cm-keyword{color:#d3124f}
+[data-ui=sketch] .cm-s-cc .cm-type,[data-ui=sketch] .cm-s-cc .cm-variable-3{color:#6a3fd1}
+[data-ui=sketch] .cm-s-cc .cm-meta{color:#b0285b}
+[data-ui=sketch] .cm-s-cc .cm-string,[data-ui=sketch] .cm-s-cc .cm-string-2{color:#11804a}
+[data-ui=sketch] .cm-s-cc .cm-number,[data-ui=sketch] .cm-s-cc .cm-atom{color:#a35d00}
+[data-ui=sketch] .cm-s-cc .cm-comment{color:#7a8499}
+[data-ui=sketch] .cm-s-cc .cm-def{color:#0f63c4}
+[data-ui=sketch] .cm-s-cc .cm-operator{color:#36506b}
+[data-ui=sketch] .cm-s-cc .cm-builtin{color:#0f63c4}
+[data-ui=sketch] .cm-s-cc .CodeMirror-linenumber{color:#9aa3ba}
+[data-ui=sketch] .cm-s-cc .CodeMirror-activeline-background{background:rgba(255,224,102,.28)}
+[data-ui=sketch] .cm-s-cc .CodeMirror-activeline-gutter .CodeMirror-linenumber{color:var(--ink)}
+[data-ui=sketch] .cm-s-cc div.CodeMirror-selected,[data-ui=sketch] .cm-s-cc.CodeMirror-focused div.CodeMirror-selected{background:rgba(31,111,209,.18)}
+[data-ui=sketch] .cm-s-cc .CodeMirror-matchingbracket{color:var(--ink)!important;background:rgba(255,79,126,.25)}
+.ln-error{background:rgba(255,92,138,.14)}.ln-warning{background:rgba(255,210,122,.12)}
+.mk{width:8px;height:8px;border-radius:50%;margin:8px 0 0 3px}.mk.error{background:var(--pink)}.mk.warning{background:var(--warn)}
+.CodeMirror-hints{font-family:var(--mono);font-size:13px;background:var(--panel);border:var(--bw) solid #2b6aa3;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:30}
+[data-ui=sketch] .CodeMirror-hints{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.CodeMirror-hint{color:var(--ink);padding:3px 10px}
+li.CodeMirror-hint-active{background:var(--pink);color:#fff}
+.CodeMirror-dialog{background:var(--panel);color:var(--ink)}.CodeMirror-dialog input{font-family:var(--mono)}
+
+/* terminal */
+.outbody{flex:1;min-height:0;position:relative;display:flex}
+.term{flex:1;overflow:auto;padding:14px 16px 24px;font-family:var(--mono);font-size:var(--fs);line-height:1.55;white-space:pre;background:var(--term);color:var(--termInk);cursor:text}
+[data-ui=sketch] .term{background-image:repeating-linear-gradient(transparent 0 calc(var(--fs) * 1.55 - 1px),#ece3b8 calc(var(--fs) * 1.55 - 1px) calc(var(--fs) * 1.55));background-attachment:local;background-position:0 14px}
+.term .ob{display:block}
+.term.wrap{white-space:pre-wrap;word-break:break-word}
+.term .meta,.term .hello,.term .waiting{white-space:pre-wrap}
+.term .err{color:var(--err)}.term .warn{color:var(--warn)}.term .note{color:var(--mute)}
+.term .in{color:var(--sky)}
+.term .meta{display:block;margin-top:14px;color:var(--mute);font-size:13px;border-top:1px dashed var(--line);padding-top:8px;font-family:var(--ui)}
+[data-ui=sketch] .term .meta{font-size:16px;border-top:2px dashed #c9bf8f}
+.term .meta.bad{color:var(--err)}.term .meta.good{color:var(--ok)}
+.term .diag{display:block;cursor:pointer;border-radius:4px}
+.term .diag:hover{background:rgba(143,211,255,.1)}
+.term .hello{color:var(--mute);white-space:normal;font-family:var(--ui);font-size:15px;max-width:52ch}
+[data-ui=sketch] .term .hello{font-size:18px}
+.term .hello b{color:var(--ink);font-weight:600}
+[data-ui=sketch] .term .hello b{font:700 26px/1.2 var(--head);display:block;margin-bottom:4px}
+.term kbd,.status kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+#stdin{background:transparent;border:0;outline:0;color:var(--sky);font:inherit;width:24ch;max-width:100%;caret-color:var(--pink);padding:0}
+.waiting{display:flex;gap:8px;align-items:center;margin-top:10px;font-family:var(--ui);font-size:13px;color:var(--mute)}
+[data-ui=sketch] .waiting{font-size:16px}
+.waiting .dot{width:8px;height:8px;border-radius:50%;background:var(--pink);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.waiting .dot{animation:none}.btn{transition:none}}
+
+/* files panel */
+.files{position:absolute;inset:0;background:var(--panel);display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);z-index:5}
+.flist{border-right:1px solid var(--line);overflow:auto;padding:8px}
+[data-ui=sketch] .flist{border-right:2px dashed var(--ink)}
+.flist button{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:8px 10px;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--ink)}
+.flist button small{color:var(--mute)}
+.flist button[aria-current=true]{background:rgba(143,211,255,.16)}
+[data-ui=sketch] .flist button[aria-current=true]{background:#ffe066}
+.flist p{color:var(--mute);font-size:13px;padding:8px}
+.fedit{display:flex;flex-direction:column;gap:8px;padding:10px;min-height:0}
+.frow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fnote{font-size:13px;color:var(--mute)}
+#fname{flex:1;height:32px;border-radius:6px;border:var(--bw) solid var(--line);background:var(--edit);padding:0 8px;font-family:var(--mono);font-size:14px;color:var(--ink)}
+#ftext{flex:1;min-height:80px;resize:none;border-radius:6px;border:var(--bw) solid var(--line);background:var(--term);color:var(--termInk);padding:10px;font:var(--fs)/1.5 var(--mono)}
+#filesBtn[aria-expanded=true]{border-color:var(--sky);color:var(--sky)}
+
+/* status */
+.status{height:32px;display:flex;align-items:center;gap:16px;padding:0 max(16px,2vw);border-top:1px solid var(--line);font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;flex:none}
+[data-ui=sketch] .status{border-top:0;font-size:16px;height:30px}
+.status .grow{margin-left:auto;display:flex;gap:14px;align-items:center}
+.prog{width:120px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+[data-ui=sketch] .prog{background:#e3e6ef;border:1px solid var(--ink);height:8px}
+.prog b{display:block;height:100%;width:0;background:var(--sky);transition:width .2s}
+.prog.pending b{width:35%;animation:compiler-progress 1.15s ease-in-out infinite alternate}
+@keyframes compiler-progress{to{transform:translateX(185%)}}
+@media (prefers-reduced-motion:reduce){.prog.pending b{animation:none}}
+.pill{display:inline-flex;align-items:center;gap:6px}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.pill.ready i{background:var(--ok)}.pill.bad i{background:var(--pink)}
+.toast{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);background:#fff;color:#0a2540;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+[data-ui=sketch] .toast{background:#ffe066;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font-size:17px;font-weight:400}
+.toast.on{opacity:1}
+.keys{position:fixed;inset:0;z-index:50;background:rgba(3,14,26,.6);display:grid;place-items:center;padding:16px}
+[data-ui=sketch] .keys{background:rgba(251,250,246,.75)}
+.keysCard{background:var(--panel);border:var(--bw) solid #2b6aa3;border-radius:12px;width:min(820px,100%);max-height:90vh;overflow:auto;padding:18px 20px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+[data-ui=sketch] .keysCard{border:2px solid var(--ink);border-radius:var(--r);box-shadow:6px 6px 0 var(--ink)}
+.keysHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.keysHead h2{margin:0;font:600 20px/1.2 var(--head)}
+[data-ui=sketch] .keysHead h2{font-size:32px;font-weight:700}
+.keysGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:6px 28px}
+.keysGrid h3{grid-column:1/-1;margin:12px 0 2px;font:600 13px/1.3 var(--ui);color:var(--sky)}
+[data-ui=sketch] .keysGrid h3{font-size:18px;color:var(--pink)}
+.krow{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px}
+[data-ui=sketch] .krow{font-size:17px;border-bottom-color:#c5cad8}
+.krow span:last-child{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.krow kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap;color:var(--ink)}
+.keysNote{color:var(--mute);font-size:13px;margin:14px 0 0}
+.cm-matchhighlight{background:rgba(143,211,255,.16);border-radius:2px}
+[data-ui=sketch] .cm-matchhighlight{background:rgba(255,224,102,.55)}
+.CodeMirror-selection-highlight-scrollbar{background:var(--sky)}
+.edbody{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+button.tab{background:none;border:0;padding:4px 6px;margin-left:-6px;border-radius:6px;cursor:pointer;max-width:55%}
+button.tab:hover,button.tab[aria-expanded=true]{background:rgba(143,211,255,.12)}
+[data-ui=sketch] button.tab:hover,[data-ui=sketch] button.tab[aria-expanded=true]{background:#ffe066}
+button.tab b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.progs{position:absolute;inset:0;z-index:6;background:var(--panel);display:flex;flex-direction:column}
+.prow{display:flex;gap:8px;align-items:center;padding:10px 12px}
+.prow .sp{margin-left:auto}
+.pfoot{border-top:1px solid var(--line);flex-wrap:wrap}
+[data-ui=sketch] .pfoot{border-top:2px dashed var(--ink)}
+#progSearch{flex:1;height:34px;border-radius:6px;border:var(--bw) solid var(--line);background:var(--edit);padding:0 10px;font-size:14px;color:var(--ink)}
+.plist{flex:1;overflow:auto;padding:0 8px 8px}
+.pitem{display:flex;align-items:center;gap:4px;border-radius:8px;padding:2px 4px}
+.pitem:hover,.pitem:focus-within{background:rgba(143,211,255,.08)}
+.pitem[aria-current=true]{background:rgba(143,211,255,.16)}
+[data-ui=sketch] .pitem[aria-current=true]{background:#fff3b0}
+.popen{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:none;border:0;padding:8px;cursor:pointer;text-align:left;min-width:0}
+.pname{font-family:var(--mono);font-size:14px;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmeta{font-size:12px;color:var(--mute)}
+[data-ui=sketch] .pmeta{font-size:15px}
+.pact{display:flex;gap:2px}
+.pact button{width:34px;height:34px;display:grid;place-items:center;border:0;background:none;border-radius:6px;cursor:pointer;color:var(--mute)}
+.pact button:hover{color:var(--ink);background:rgba(143,211,255,.14)}
+.pact button.confirm{width:auto;padding:0 10px;color:#fff;background:var(--pink);font-size:13px}
+.pact .ic{width:16px;height:16px}
+.prename{flex:1;height:34px;margin:6px 4px;border-radius:6px;border:var(--bw) solid var(--sky);background:var(--edit);padding:0 8px;font-family:var(--mono);font-size:14px;color:var(--ink)}
+.plist .empty{color:var(--mute);padding:16px 8px;font-size:14px}
+.shotCard{width:min(1040px,100%)}
+.shotOpts{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin:4px 0 12px}
+.shotOpts label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+[data-ui=sketch] .shotOpts label{font-size:16px}
+.shotOpts label.chk{display:flex;align-items:center;gap:7px;color:var(--ink);height:40px}
+.shotOpts input[type=checkbox]{width:18px;height:18px;accent-color:var(--pink)}
+.shotOpts .sel{box-shadow:none}
+.shotPrev{background:repeating-conic-gradient(rgba(127,127,127,.12) 0 25%,transparent 0 50%) 0 0/16px 16px;border-radius:8px;padding:12px;display:grid;place-items:center;max-height:58vh;overflow:auto;margin-bottom:12px}
+.shotPrev img{max-width:100%;height:auto;display:block}
+.hide{display:none!important}
+input[type=file]{display:none}
+
+@media (max-width:760px){
+  body{overflow:auto;height:auto;min-height:100%}
+  .brand small{display:none}
+  .tools{width:100%}
+  .tools .run{margin-left:auto}
+  .lbl{display:none}
+  .work,[data-ui=sketch] .work{display:flex;flex-direction:column;gap:var(--paneGap)}
+  .gutter{display:none}
+  #edPane{height:56vh}
+  #outPane{height:44vh}
+  .pop{right:auto;left:0}
+  .status .hide-sm{display:none}
+  .files{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .flist{border-right:0;border-bottom:1px solid var(--line);max-height:110px}
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <div><h1><img class="brand-logo" src="./codenrun-logo.png" alt="codenrun" width="720" height="123"></h1><small>Real Clang 22 for C and C++, running entirely in your browser</small></div>
+  </div>
+  <div class="tools">
+    <div class="seg" role="group" aria-label="Language"><button type="button" id="langC" aria-pressed="true">C</button><button type="button" id="langCpp" aria-pressed="false">C++</button></div>
+    <select class="sel" id="examples" aria-label="Load an example"><option value="">Examples</option></select>
+    <details class="opts" id="opts">
+      <summary class="btn" aria-label="Compiler options"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M10 5H3" /><path d="M12 19H3" /><path d="M14 3v4" /><path d="M16 17v4" /><path d="M21 12h-9" /><path d="M21 19h-5" /><path d="M21 5h-7" /><path d="M8 10v4" /><path d="M8 12H3" /></svg></span><span class="lbl">Options</span></summary>
+      <div class="pop">
+        <label>Language standard<select class="sel" id="std"></select></label>
+        <label>Optimisation<select class="sel" id="opt"><option value="-O0">-O0, none (best for learning)</option><option value="-O1">-O1</option><option value="-O2" selected>-O2, fast</option><option value="-Os">-Os, small</option></select></label>
+        <label>Time limit per run<select class="sel" id="limit"><option value="5">5 seconds</option><option value="10" selected>10 seconds</option><option value="30">30 seconds</option><option value="120">2 minutes</option></select></label>
+        <label>Program arguments (argv)<input type="text" id="argv" placeholder="e.g. 42 hello" autocomplete="off" spellcheck="false"></label>
+        <label>Format style (Shift+Alt+F)<select class="sel" id="fstyle"><option value="kr">K&amp;R, 4 spaces (default)</option><option value="allman">Allman (Visual Studio)</option><option value="google">Google</option><option value="llvm">LLVM</option></select></label>
+        <div class="row"><input type="checkbox" id="wrapOut"><label for="wrapOut" style="display:inline;color:var(--ink)">Wrap long output lines</label></div>
+        <div class="row"><input type="checkbox" id="wall" checked><label for="wall" style="display:inline;color:var(--ink)">Show warnings (-Wall -Wextra)</label></div>
+        <label>Font size<div class="fsz"><button class="btn mini" id="fsDown" type="button" aria-label="Smaller text"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m14 12 4 4 4-4" /><path d="M18 16V7" /><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16" /><path d="M3.304 13h6.392" /></svg></span></button><button class="btn mini" id="fsUp" type="button" aria-label="Larger text"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m14 11 4-4 4 4" /><path d="M18 16V7" /><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16" /><path d="M3.304 13h6.392" /></svg></span></button></div></label>
+      </div>
+    </details>
+    <button class="btn" id="openBtn" type="button" title="Open a source file"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></svg></span><span class="lbl">Open</span></button>
+    <button class="btn" id="copyBtn" type="button" title="Copy code"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg></span><span class="lbl">Copy</span></button>
+    <button class="btn icon-only" id="themeBtn" type="button" title="Switch theme" aria-label="Switch theme"><span id="themeIc"></span></button>
+    <button class="btn run" id="runBtn" type="button" title="Run (Ctrl+Enter)"><span id="runIc"></span><span id="runLbl">Run</span></button>
+  </div>
+  <input type="file" id="file" accept=".c,.cpp,.cc,.cxx,.h,.hpp,.txt,text/plain">
+</header>
+
+<main class="work" id="work">
+  <section class="pane" id="edPane">
+    <div class="head"><button class="tab" id="progBtn" type="button" title="My programs: saved in this browser" aria-expanded="false" aria-controls="progs"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M10 10.5 8 13l2 2.5" /><path d="m14 10.5 2 2.5-2 2.5" /><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z" /></svg></span><i id="dirty"></i><b id="fileName">main.c</b></button><span class="sp"></span><span id="cursor" class="hide-sm">Ln 1, Col 1</span><button class="btn mini" id="fmtBtn" type="button" title="Format document (Shift+Alt+F)"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /><path d="m14 7 3 3" /><path d="M5 6v4" /><path d="M19 14v4" /><path d="M10 2v2" /><path d="M7 8H3" /><path d="M21 16h-4" /><path d="M11 3H9" /></svg></span><span class="lbl">Format</span></button><button class="btn mini" id="shotBtn" type="button" title="Code screenshot"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></svg></span><span class="lbl">Screenshot</span></button><button class="btn mini" id="keysBtn" type="button" title="Keyboard shortcuts (F1)" aria-label="Keyboard shortcuts"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M10 8h.01" /><path d="M12 12h.01" /><path d="M14 8h.01" /><path d="M16 12h.01" /><path d="M18 8h.01" /><path d="M6 8h.01" /><path d="M7 16h10" /><path d="M8 12h.01" /><rect width="20" height="16" x="2" y="4" rx="2" /></svg></span></button><button class="btn mini" id="resetBtn" type="button" title="Restore the Hello World template"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg></span><span class="lbl">Reset</span></button></div>
+    <div class="edbody">
+      <div id="ed"></div>
+      <div class="progs hide" id="progs" aria-label="My programs">
+        <div class="prow"><input type="search" id="progSearch" placeholder="Search your programs" aria-label="Search programs" autocomplete="off" spellcheck="false"><button class="btn mini" id="progNew" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M5 12h14" /><path d="M12 5v14" /></svg></span>New</button></div>
+        <div class="plist" id="plist"></div>
+        <div class="prow pfoot"><span class="fnote" id="progUsage"></span><span class="sp"></span><button class="btn mini" id="progImport" type="button" title="Import .c/.cpp files or a backup"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 3v12" /><path d="m17 8-5-5-5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /></svg></span><span class="lbl">Import</span></button><button class="btn mini" id="progExport" type="button" title="Back up all programs as one file"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /></svg></span><span class="lbl">Export all</span></button><input type="file" id="progFile" multiple accept=".c,.cpp,.cc,.cxx,.h,.hpp,.json,.txt"></div>
+      </div>
+    </div>
+  </section>
+  <div class="gutter" id="gutter" role="separator" aria-orientation="vertical" aria-label="Resize panes" tabindex="0"></div>
+  <section class="pane" id="outPane">
+    <div class="head"><span class="title"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 19h8" /><path d="m4 17 6-6-6-6" /></svg></span>Output</span><span class="sp"></span>
+      <button class="btn mini" id="filesBtn" type="button" aria-expanded="false" title="Files your programs can read and write"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M15 2h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8" /><path d="M16.706 2.706A2.4 2.4 0 0 0 15 2v5a1 1 0 0 0 1 1h5a2.4 2.4 0 0 0-.706-1.706z" /><path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1" /></svg></span><span class="lbl">Files</span> <span id="fileCount">0</span></button>
+      <button class="btn mini" id="eofBtn" type="button" title="Send end of input (Ctrl+D)" disabled><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 17V3" /><path d="m6 11 6 6 6-6" /><path d="M19 21H5" /></svg></span><span class="lbl">EOF</span></button>
+      <button class="btn mini" id="clearBtn" type="button" title="Clear output"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21" /><path d="m5.082 11.09 8.828 8.828" /></svg></span><span class="lbl">Clear</span></button>
+    </div>
+    <div class="outbody">
+      <div class="term" id="term" aria-live="polite"></div>
+      <div class="files hide" id="files">
+        <div class="flist" id="flist"></div>
+        <div class="fedit">
+          <div class="frow"><input type="text" id="fname" placeholder="input.txt" aria-label="File name" autocomplete="off" spellcheck="false"><button class="btn mini" id="fSave" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg></span>Save</button><button class="btn mini" id="fDel" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg></span>Delete</button></div>
+          <textarea id="ftext" spellcheck="false" aria-label="File contents" placeholder="File contents. Programs open files by name, for example fopen(&quot;input.txt&quot;, &quot;r&quot;)"></textarea>
+          <div class="frow"><button class="btn mini" id="fNew" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /><path d="M14 2v5a1 1 0 0 0 1 1h5" /><path d="M9 15h6" /><path d="M12 18v-6" /></svg></span>New file</button><button class="btn mini" id="fUp" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 3v12" /><path d="m17 8-5-5-5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /></svg></span>Upload</button><span class="fnote">Kept in this browser between runs</span><input type="file" id="fUpload" multiple></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="status">
+  <span class="pill" id="engine"><i></i><span id="engineTxt">Compiler on standby</span><span class="prog hide" id="prog"><b id="progBar"></b></span></span>
+  <span id="stats" class="hide-sm"></span>
+  <span class="grow hide-sm"><span><kbd>Ctrl+Enter</kbd> run</span><span><kbd>Shift+Alt+F</kbd> format</span><span><kbd>F1</kbd> all shortcuts</span></span>
+</footer>
+<div class="keys hide" id="keys" role="dialog" aria-modal="true" aria-labelledby="keysTitle">
+  <div class="keysCard">
+    <div class="keysHead"><h2 id="keysTitle">Keyboard shortcuts</h2><button class="btn mini" id="keysClose" type="button" aria-label="Close"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></span></button></div>
+    <div class="keysGrid" id="keysGrid"></div>
+    <p class="keysNote">On a Mac, use Cmd for Ctrl and Option for Alt.</p>
+  </div>
+</div>
+<div class="keys hide" id="shot" role="dialog" aria-modal="true" aria-labelledby="shotTitle">
+  <div class="keysCard shotCard">
+    <div class="keysHead"><h2 id="shotTitle">Code screenshot</h2><button class="btn mini" id="shotClose" type="button" aria-label="Close"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></span></button></div>
+    <div class="shotOpts">
+      <label>Style<select class="sel" id="shotTheme"><option value="sea">Deep sea</option><option value="sketch">Sketchbook</option></select></label>
+      <label>Padding<select class="sel" id="shotPad"><option value="28">Small</option><option value="56" selected>Medium</option><option value="88">Large</option></select></label>
+      <label class="chk"><input type="checkbox" id="shotNums" checked>Line numbers</label>
+      <label class="chk"><input type="checkbox" id="shotOut">Include output</label>
+      <label class="chk"><input type="checkbox" id="shotSel">Selected lines only</label>
+    </div>
+    <div class="shotPrev"><img id="shotImg" alt="Preview of the code screenshot"></div>
+    <div class="frow"><button class="btn" id="shotDl" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /></svg></span>Download PNG</button><button class="btn" id="shotCopy" type="button"><span class="ic" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /><path d="M16 4h2a2 2 0 0 1 2 2v4" /><path d="M21 14H11" /><path d="m15 10-4 4 4 4" /></svg></span>Copy image</button><span class="fnote" id="shotInfo"></span></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="editor.js"></script>
+<script>
+main: {
+const $ = (id) => document.getElementById(id);
+if (typeof CodeMirror === 'undefined') {
+  // editor.js did not load: the page was opened without the rest of its folder.
+  const t = document.getElementById('term');
+  t.innerHTML = '<div class="hello"><b>Some files are missing.</b> This page needs index.html, editor.js, workers.js and the clang folder side by side. If you opened index.html from inside the zip, right-click c-playground.zip, choose Extract All, then open index.html from the extracted folder.</div>';
+  document.getElementById('engineTxt').textContent = 'Files missing';
+  break main;
+}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('cplay.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('cplay.' + k, JSON.stringify(v)); } catch {} },
+};
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ICONS = {"play": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" /></svg>", "square": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /></svg>", "sun": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><circle cx=\"12\" cy=\"12\" r=\"4\" /><path d=\"M12 2v2\" /><path d=\"M12 20v2\" /><path d=\"m4.93 4.93 1.41 1.41\" /><path d=\"m17.66 17.66 1.41 1.41\" /><path d=\"M2 12h2\" /><path d=\"M20 12h2\" /><path d=\"m6.34 17.66-1.41 1.41\" /><path d=\"m19.07 4.93-1.41 1.41\" /></svg>", "moon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401\" /></svg>", "pencil": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /><path d=\"m15 5 4 4\" /></svg>", "copy-plus": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><line x1=\"15\" x2=\"15\" y1=\"12\" y2=\"18\" /><line x1=\"12\" x2=\"18\" y1=\"15\" y2=\"15\" /><rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" /></svg>", "trash-2": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" /></svg>"};
+const icon = (n) => `<span class="ic" aria-hidden="true">${ICONS[n]}</span>`;
+
+let running = false, queued = false, runner = null, timer = null, session = null, cache = { key: '', bytes: null };
+const engine = { ready: false, failed: false, version: '' };
+
+// Opening from disk requires script-based assets because file:// blocks worker URLs and fetch.
+const FILE_MODE = !/^https?:$/.test(location.protocol);
+const runtimePath = 'clang/runtime-22.1.8/';
+const brotliRuntimePath = 'clang/runtime-22.1.8-br/';
+const useBrotliRuntime = location.protocol === 'https:' && location.hostname.endsWith('.vercel.app');
+function loadScript(path, errorMessage) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = path;
+    script.onload = resolve;
+    script.onerror = () => { script.remove(); reject(new Error(errorMessage)); };
+    document.head.appendChild(script);
+  });
+}
+// Paint and initialize the editor with fallback fonts before fetching custom faces.
+window.addEventListener('load', () => requestAnimationFrame(() => {
+  const styles = document.createElement('link');
+  styles.rel = 'stylesheet';
+  styles.href = 'fonts.css';
+  document.head.appendChild(styles);
+}), { once: true });
+function makeWorker(name) {
+  if (!FILE_MODE) return new Worker(`web-worker.js?entry=${name}`);
+  const src = window.__CC_SRC && window.__CC_SRC[name];
+  if (!src) {
+    const inZip = /\.zip|[\\/]Temp[\\/]|[\\/]tmp[\\/]/i.test(decodeURIComponent(location.href));
+    throw new Error(inZip
+      ? 'index.html was opened from inside the zip, so the rest of the files are not next to it. Right-click c-playground.zip, choose Extract All, then open index.html from the extracted c-playground folder.'
+      : 'workers.js did not load. Use the complete c-playground folder from c-playground.zip: index.html, editor.js, workers.js and the clang folder, side by side. Older copies without workers.js cannot run from disk.');
+  }
+  return new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+}
+const assetWaiters = new Map();
+window.__ccAsset = (path, text) => { const w = assetWaiters.get(path); if (w) { assetWaiters.delete(path); w.resolve(text); } };
+function loadAssetScript(path) {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    assetWaiters.set(path, { resolve: (t) => { el.remove(); resolve(t); } });
+    el.onerror = () => { assetWaiters.delete(path); el.remove(); reject(new Error(`Missing file ${path}.js. Keep the clang folder next to index.html.`)); };
+    el.src = path + '.js';
+    document.head.appendChild(el);
+  });
+}
+
+const HELLO_C = `// C, compiled by real Clang in your browser
+#include <stdio.h>
+
+int main(void) {
+    printf("Hello, World!\\n");
+    return 0;
+}
+`;
+const EXAMPLES_C = [
+  ['Hello, World', HELLO_C],
+  ['Read input (scanf)', `#include <stdio.h>
+
+int main(void) {
+    char name[50];
+    int age;
+
+    printf("Enter your name: ");
+    scanf("%49s", name);
+    printf("Enter your age: ");
+    scanf("%d", &age);
+
+    printf("Hi %s! In 10 years you will be %d.\\n", name, age + 10);
+    return 0;
+}
+`],
+  ['Calculator (switch)', `#include <stdio.h>
+
+int main(void) {
+    char op;
+    double a, b;
+
+    printf("Enter an operator (+, -, *, /): ");
+    scanf(" %c", &op);
+    printf("Enter two numbers: ");
+    scanf("%lf %lf", &a, &b);
+
+    switch (op) {
+        case '+': printf("%.2f + %.2f = %.2f\\n", a, b, a + b); break;
+        case '-': printf("%.2f - %.2f = %.2f\\n", a, b, a - b); break;
+        case '*': printf("%.2f * %.2f = %.2f\\n", a, b, a * b); break;
+        case '/':
+            if (b == 0) printf("Error: division by zero\\n");
+            else printf("%.2f / %.2f = %.2f\\n", a, b, a / b);
+            break;
+        default: printf("Unknown operator '%c'\\n", op);
+    }
+    return 0;
+}
+`],
+  ['Sum until 0 (loop input)', `#include <stdio.h>
+
+int main(void) {
+    int n, sum = 0, count = 0;
+    printf("Enter numbers, 0 to stop:\\n");
+    while (scanf("%d", &n) == 1 && n != 0) {
+        sum += n;
+        count++;
+        printf("  running total = %d\\n", sum);
+    }
+    if (count) printf("Average of %d numbers: %.2f\\n", count, (double)sum / count);
+    return 0;
+}
+`],
+  ['Fibonacci (recursion)', `#include <stdio.h>
+
+unsigned long long fib(int n) {
+    return n < 2 ? n : fib(n - 1) + fib(n - 2);
+}
+
+int main(void) {
+    for (int i = 0; i <= 35; i += 5)
+        printf("fib(%2d) = %llu\\n", i, fib(i));
+    return 0;
+}
+`],
+  ['Bubble sort (arrays)', `#include <stdio.h>
+
+void bubble_sort(int a[], int n) {
+    for (int i = 0; i < n - 1; i++)
+        for (int j = 0; j < n - 1 - i; j++)
+            if (a[j] > a[j + 1]) { int t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }
+}
+
+int main(void) {
+    int a[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof a / sizeof a[0];
+    bubble_sort(a, n);
+    for (int i = 0; i < n; i++) printf("%d ", a[i]);
+    printf("\\n");
+    return 0;
+}
+`],
+  ['Linked list (malloc)', `#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int value;
+    struct Node *next;
+} Node;
+
+Node *push(Node *head, int value) {
+    Node *n = malloc(sizeof *n);
+    if (!n) { perror("malloc"); exit(1); }
+    n->value = value;
+    n->next = head;
+    return n;
+}
+
+int main(void) {
+    Node *list = NULL;
+    for (int i = 1; i <= 5; i++) list = push(list, i * i);
+
+    for (Node *p = list; p; p = p->next) printf("%d -> ", p->value);
+    printf("NULL\\n");
+
+    while (list) { Node *next = list->next; free(list); list = next; }
+    return 0;
+}
+`],
+  ['Structs & strings', `#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+struct Student {
+    char name[32];
+    float gpa;
+};
+
+int main(void) {
+    struct Student s[] = {{"Rahim", 3.62f}, {"Karim", 3.91f}, {"Nadia", 3.75f}};
+    int n = sizeof s / sizeof s[0], best = 0;
+
+    for (int i = 1; i < n; i++) if (s[i].gpa > s[best].gpa) best = i;
+
+    char upper[32];
+    strcpy(upper, s[best].name);
+    for (char *c = upper; *c; c++) *c = toupper((unsigned char)*c);
+
+    printf("Top student: %s (GPA %.2f), name length %zu\\n", upper, s[best].gpa, strlen(upper));
+    return 0;
+}
+`],
+  ['Random numbers & time', `#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main(void) {
+    srand((unsigned)time(NULL));
+    printf("Rolling five dice: ");
+    for (int i = 0; i < 5; i++) printf("%d ", rand() % 6 + 1);
+    printf("\\n");
+    return 0;
+}
+`],
+  ['Pyramid pattern', `#include <stdio.h>
+
+int main(void) {
+    int rows;
+    printf("How many rows? ");
+    scanf("%d", &rows);
+    for (int i = 1; i <= rows; i++) {
+        for (int s = 0; s < rows - i; s++) printf(" ");
+        for (int k = 0; k < 2 * i - 1; k++) printf("*");
+        printf("\\n");
+    }
+    return 0;
+}
+`],
+  ['File handling (fopen)', `#include <stdio.h>
+
+// Files live in the Files panel (next to Clear) and persist between runs.
+int main(void) {
+    FILE *in = fopen("input.txt", "r");
+    if (!in) { perror("input.txt"); return 1; }
+
+    int a, b, c;
+    fscanf(in, "%d %d %d", &a, &b, &c);
+    fclose(in);
+
+    FILE *out = fopen("result.txt", "w");
+    fprintf(out, "sum = %d\\naverage = %.2f\\n", a + b + c, (a + b + c) / 3.0);
+    fclose(out);
+
+    printf("Read %d, %d, %d from input.txt and wrote result.txt\\n", a, b, c);
+    return 0;
+}
+`],
+  ['Command-line arguments', `#include <stdio.h>
+
+// Set arguments in Options > Program arguments
+int main(int argc, char *argv[]) {
+    printf("argc = %d\\n", argc);
+    for (int i = 0; i < argc; i++) printf("argv[%d] = %s\\n", i, argv[i]);
+    return 0;
+}
+`],
+  ['Crash: bad pointer', `#include <stdio.h>
+
+int main(void) {
+    int *p = (int *)0xFFFFFFF0;   // an address the program does not own
+    printf("About to write through a bad pointer...\\n");
+    *p = 42;
+    printf("never printed\\n");
+    return 0;
+}
+`],
+];
+
+const HELLO_CPP = `// C++, compiled by real Clang in your browser
+#include <iostream>
+
+int main() {
+    std::cout << "Hello, World!" << std::endl;
+    return 0;
+}
+`;
+const EXAMPLES_CPP = [
+  ['Hello, World', HELLO_CPP],
+  ['Read input (cin)', `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string name;
+    int age;
+
+    cout << "Enter your name: ";
+    getline(cin, name);
+    cout << "Enter your age: ";
+    cin >> age;
+
+    cout << "Hi " << name << "! In 10 years you will be " << age + 10 << ".\\n";
+    return 0;
+}
+`],
+  ['Vector & sort', `#include <algorithm>
+#include <iostream>
+#include <numeric>
+#include <vector>
+using namespace std;
+
+int main() {
+    int n;
+    cout << "How many numbers? ";
+    cin >> n;
+
+    vector<int> v(n);
+    cout << "Enter " << n << " numbers: ";
+    for (int &x : v) cin >> x;
+
+    sort(v.begin(), v.end());
+    cout << "Sorted: ";
+    for (int x : v) cout << x << ' ';
+    cout << "\\nSum: " << accumulate(v.begin(), v.end(), 0)
+         << ", max: " << *max_element(v.begin(), v.end()) << '\\n';
+    return 0;
+}
+`],
+  ['Classes & inheritance', `#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+using namespace std;
+
+class Shape {
+public:
+    virtual ~Shape() = default;
+    virtual double area() const = 0;
+    virtual string name() const = 0;
+};
+
+class Circle : public Shape {
+    double r;
+public:
+    explicit Circle(double r) : r(r) {}
+    double area() const override { return 3.14159265 * r * r; }
+    string name() const override { return "Circle"; }
+};
+
+class Rect : public Shape {
+    double w, h;
+public:
+    Rect(double w, double h) : w(w), h(h) {}
+    double area() const override { return w * h; }
+    string name() const override { return "Rectangle"; }
+};
+
+int main() {
+    vector<unique_ptr<Shape>> shapes;
+    shapes.push_back(make_unique<Circle>(2));
+    shapes.push_back(make_unique<Rect>(3, 4));
+
+    for (const auto &s : shapes)
+        cout << s->name() << " area = " << s->area() << '\\n';
+    return 0;
+}
+`],
+  ['Word count (map)', `#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+using namespace std;
+
+int main() {
+    cout << "Type a sentence: ";
+    string line, word;
+    getline(cin, line);
+
+    map<string, int> freq;
+    stringstream ss(line);
+    while (ss >> word) freq[word]++;
+
+    for (const auto &[w, c] : freq)
+        cout << w << ": " << c << '\\n';
+    return 0;
+}
+`],
+  ['Templates', `#include <iostream>
+#include <string>
+using namespace std;
+
+template <typename T>
+T biggest(T a, T b, T c) {
+    T m = a;
+    if (b > m) m = b;
+    if (c > m) m = c;
+    return m;
+}
+
+template <typename T, int N>
+struct Stack {
+    T data[N];
+    int top = 0;
+    void push(T x) { if (top < N) data[top++] = x; }
+    T pop() { return data[--top]; }
+    bool empty() const { return top == 0; }
+};
+
+int main() {
+    cout << biggest(3, 9, 4) << '\\n';
+    cout << biggest(2.5, 1.5, 0.5) << '\\n';
+    cout << biggest<string>("pear", "apple", "fig") << '\\n';
+
+    Stack<int, 5> s;
+    for (int i = 1; i <= 5; i++) s.push(i * 10);
+    while (!s.empty()) cout << s.pop() << ' ';
+    cout << '\\n';
+    return 0;
+}
+`],
+  ['Files (fstream)', `#include <fstream>
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Files live in the Files panel (next to Clear) and persist between runs.
+int main() {
+    ifstream in("input.txt");
+    if (!in) { cerr << "Could not open input.txt\\n"; return 1; }
+
+    int a, b, c;
+    in >> a >> b >> c;
+
+    ofstream out("result.txt");
+    out << "sum = " << a + b + c << '\\n';
+    out << "average = " << (a + b + c) / 3.0 << '\\n';
+
+    cout << "Read " << a << ", " << b << ", " << c << " and wrote result.txt\\n";
+    return 0;
+}
+`],
+  ['Lambdas & structs', `#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+struct Student {
+    string name;
+    double gpa;
+};
+
+int main() {
+    vector<Student> s = {{"Rahim", 3.62}, {"Karim", 3.91}, {"Nadia", 3.75}};
+
+    sort(s.begin(), s.end(), [](const Student &a, const Student &b) {
+        return a.gpa > b.gpa;
+    });
+
+    int rank = 1;
+    for (const auto &st : s)
+        cout << rank++ << ". " << st.name << " (" << st.gpa << ")\\n";
+
+    auto honours = count_if(s.begin(), s.end(), [](const Student &x) { return x.gpa >= 3.7; });
+    cout << honours << " students have GPA 3.7 or above\\n";
+    return 0;
+}
+`],
+];
+
+
+const LANGS = {
+  c: { label: 'C', file: 'main.c', mode: 'text/x-csrc', hello: HELLO_C, examples: EXAMPLES_C,
+       stds: [['gnu11', 'C11'], ['gnu17', 'C17'], ['gnu23', 'C23']], defStd: 'gnu17' },
+  cpp: { label: 'C++', file: 'main.cpp', mode: 'text/x-c++src', hello: HELLO_CPP, examples: EXAMPLES_CPP,
+         stds: [['gnu++11', 'C++11'], ['gnu++14', 'C++14'], ['gnu++17', 'C++17'], ['gnu++20', 'C++20'], ['gnu++23', 'C++23']], defStd: 'gnu++17' },
+};
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200); }
+
+/* ---------- saved programs (browser storage) ----------
+ * Every program is kept in localStorage under cplay.programs and saved as you type.
+ * Older versions kept one program per language (cplay.code.c / cplay.code.cpp); those become
+ * "main.c" and "main.cpp" the first time this version runs. */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const langOfName = (n) => (/\.(cpp|cc|cxx|c\+\+|hpp|hh)$/i.test(n) ? 'cpp' : /\.[ch]$/i.test(n) ? 'c' : null);
+let programs = store.get('programs', null);
+if (!Array.isArray(programs) || !programs.length) {
+  const c = store.get('code.c', store.get('code', null)), cpp = store.get('code.cpp', null);
+  programs = [{ id: uid(), name: 'main.c', lang: 'c', code: c == null ? HELLO_C : c, updated: Date.now() }];
+  if (cpp != null) programs.push({ id: uid(), name: 'main.cpp', lang: 'cpp', code: cpp, updated: Date.now() - 1 });
+}
+let current = programs.find((p) => p.id === store.get('current', '')) || programs.find((p) => p.lang === store.get('lang', 'c')) || programs[0];
+let lang = current.lang;
+function persistPrograms() {
+  try {
+    localStorage.setItem('cplay.programs', JSON.stringify(programs));
+    localStorage.setItem('cplay.current', JSON.stringify(current.id));
+    localStorage.setItem('cplay.lang', JSON.stringify(lang));
+    return true;
+  } catch (e) { toast('Browser storage is full. Delete some programs or files to keep saving.'); return false; }
+}
+persistPrograms();
+function uniqueName(name, exceptId) {
+  const taken = new Set(programs.filter((p) => p.id !== exceptId).map((p) => p.name.toLowerCase()));
+  if (!taken.has(name.toLowerCase())) return name;
+  const m = name.match(/^(.*?)(\.[^.]*)?$/);
+  for (let i = 2; ; i++) { const n = `${m[1]}-${i}${m[2] || ''}`; if (!taken.has(n.toLowerCase())) return n; }
+}
+
+/* ---------- theme ---------- */
+const applyThemeIcon = () => {
+  const sketch = document.documentElement.dataset.ui === 'sketch';
+  $('themeIc').innerHTML = icon(sketch ? 'moon' : 'sun');
+  $('themeBtn').title = sketch ? 'Switch to dark theme' : 'Switch to light sketchbook theme';
+};
+$('themeBtn').onclick = () => {
+  const next = document.documentElement.dataset.ui === 'sketch' ? 'sea' : 'sketch';
+  document.documentElement.dataset.ui = next; store.set('ui', next); applyThemeIcon();
+  setTimeout(() => cm.refresh(), 0);
+};
+applyThemeIcon();
+
+/* ---------- editor ---------- */
+const C_WORDS = ('auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while _Bool bool true false NULL size_t ' +
+  'printf scanf fprintf fscanf sprintf snprintf puts putchar getchar fgets fputs fopen fclose fflush fread fwrite perror remove rename stdin stdout stderr EOF FILE ' +
+  'malloc calloc realloc free exit abs atoi atof atol strtol strtod rand srand qsort bsearch system ' +
+  'strlen strcpy strncpy strcat strncat strcmp strncmp strchr strrchr strstr strtok memcpy memmove memset memcmp ' +
+  'sqrt pow fabs floor ceil round sin cos tan log log10 exp fmod ' +
+  'isalpha isdigit isalnum isspace isupper islower toupper tolower time clock difftime sleep CLOCKS_PER_SEC INT_MAX INT_MIN ' +
+  'uint8_t uint16_t uint32_t uint64_t int8_t int16_t int32_t int64_t include define ifdef ifndef endif main').split(' ');
+const CPP_WORDS = ('class public private protected virtual override final template typename namespace using new delete this nullptr try catch throw noexcept constexpr ' +
+  'static_cast dynamic_cast const_cast reinterpret_cast operator friend explicit mutable auto decltype ' +
+  'std cout cin cerr endl string vector map unordered_map set unordered_set pair make_pair tuple array deque list queue stack priority_queue ' +
+  'sort reverse find count accumulate max_element min_element unique lower_bound upper_bound swap min max begin end size push_back emplace_back pop_back ' +
+  'getline stringstream istringstream ostringstream ifstream ofstream fstream unique_ptr shared_ptr make_unique make_shared iostream algorithm numeric sstream fstream').split(' ');
+
+function hint(c) {
+  const cur = c.getCursor(), tok = c.getTokenAt(cur);
+  const start = /\w/.test(tok.string) ? tok.start : cur.ch;
+  const word = tok.string.slice(0, cur.ch - tok.start).replace(/\W/g, '');
+  const local = new Set(c.getValue().match(/[A-Za-z_]\w{2,}/g) || []);
+  const words = lang === 'cpp' ? [...C_WORDS, ...CPP_WORDS] : C_WORDS;
+  const pool = [...new Set([...words, ...local])].filter((w) => w !== word && w.startsWith(word)).sort();
+  return { list: pool.slice(0, 40), from: CodeMirror.Pos(cur.line, start), to: CodeMirror.Pos(cur.line, cur.ch) };
+}
+
+/* ---------- VS Code style keys ---------- */
+// Duplicate the lines under each cursor. Inserting the copy above shifts the original down, which is
+// exactly "copy line down"; for "copy line up" the selections are moved back onto the upper copy.
+function duplicateLines(c, up) {
+  c.operation(() => {
+    const ranges = c.listSelections().map((r) => {
+      const a = r.anchor, h = r.head;
+      let from = Math.min(a.line, h.line), to = Math.max(a.line, h.line);
+      const end = a.line > h.line ? a : h.line > a.line ? h : null;
+      if (end && end.ch === 0 && to > from) to--;
+      return { from, to, r };
+    });
+    const blocks = [...ranges].sort((x, y) => y.from - x.from);
+    let lastFrom = Infinity;
+    for (const b of blocks) {
+      if (b.to >= lastFrom) continue; // overlapping selections: duplicate once
+      lastFrom = b.from;
+      c.replaceRange(c.getRange({ line: b.from, ch: 0 }, { line: b.to }) + '\n', { line: b.from, ch: 0 });
+    }
+    if (up) {
+      const shifted = c.listSelections().map((r, i) => {
+        const n = ranges[i] ? ranges[i].to - ranges[i].from + 1 : 0;
+        return { anchor: { line: r.anchor.line - n, ch: r.anchor.ch }, head: { line: r.head.line - n, ch: r.head.ch } };
+      });
+      c.setSelections(shifted);
+    }
+  });
+}
+function toggleBlockComment(c) {
+  const sel = c.getSelection();
+  if (/^\s*\/\*[\s\S]*\*\/\s*$/.test(sel)) c.replaceSelection(sel.replace(/\/\*\s?/, '').replace(/\s?\*\/(\s*)$/, '$1'), 'around');
+  else if (sel) c.replaceSelection('/* ' + sel + ' */', 'around');
+  else { c.replaceSelection('/*  */'); const p = c.getCursor(); c.setCursor({ line: p.line, ch: p.ch - 3 }); }
+}
+function vsKeys() {
+  const k = {
+    'Ctrl-Enter': () => runOrStop(),
+    'Ctrl-S': () => { save(); toast('Saved in this browser'); },
+    'Ctrl-Space': (c) => c.showHint({ hint, completeSingle: false }),
+    Tab: (c) => c.somethingSelected() ? c.indentSelection('add') : c.replaceSelection('    ', 'end'),
+    'Shift-Tab': (c) => c.indentSelection('subtract'),
+    // lines
+    'Shift-Alt-Down': (c) => duplicateLines(c, false), 'Shift-Alt-Up': (c) => duplicateLines(c, true),
+    'Alt-Up': 'swapLineUp', 'Alt-Down': 'swapLineDown',
+    'Shift-Ctrl-K': 'deleteLine', 'Ctrl-L': 'selectLine', 'Shift-Ctrl-Enter': 'insertLineBefore',
+    'Ctrl-]': 'indentMore', 'Ctrl-[': 'indentLess',
+    // comments
+    'Ctrl-/': 'toggleCommentIndented', 'Shift-Alt-A': toggleBlockComment,
+    // multi-cursor
+    'Ctrl-D': 'selectNextOccurrence', 'Shift-Ctrl-L': 'findAllUnder', 'Ctrl-F2': 'findAllUnder',
+    'Ctrl-Alt-Up': 'addCursorToPrevLine', 'Ctrl-Alt-Down': 'addCursorToNextLine',
+    'Ctrl-U': 'undoSelection', Esc: (c) => { if (c.listSelections().length > 1) c.execCommand('singleSelectionTop'); else return CodeMirror.Pass; },
+    'Shift-Ctrl-\\': 'goToBracket',
+    // find
+    'Ctrl-F': 'findPersistent', 'Ctrl-H': 'replace', F3: 'findNext', 'Shift-F3': 'findPrev', 'Ctrl-G': 'jumpToLine',
+    // format
+    'Shift-Alt-F': () => formatCode(false), 'Shift-Ctrl-I': () => formatCode(false), 'Ctrl-K Ctrl-F': () => formatCode(true),
+    F1: () => openKeys(),
+    'Ctrl-O': () => toggleProgs(true), 'Ctrl-Alt-N': () => $('progNew').click(), 'Shift-Ctrl-S': () => openShot(),
+  };
+  // Mac: same keys with Cmd in place of Ctrl.
+  for (const [key, cmd] of Object.entries({ ...k })) if (key.includes('Ctrl-')) k[key.replace(/Ctrl-/g, 'Cmd-')] = cmd;
+  return CodeMirror.normalizeKeyMap(k);
+}
+const SHORTCUTS = [
+  ['Run and save', [['Run or stop', 'Ctrl+Enter'], ['Save now (also saves automatically)', 'Ctrl+S'], ['Show this list', 'F1']]],
+  ['Lines', [['Copy line down', 'Shift+Alt+Down'], ['Copy line up', 'Shift+Alt+Up'], ['Move line up / down', 'Alt+Up / Alt+Down'], ['Delete line', 'Ctrl+Shift+K'], ['Select line', 'Ctrl+L'], ['Insert line above', 'Ctrl+Shift+Enter'], ['Indent / outdent', 'Tab / Shift+Tab'], ['Indent / outdent line', 'Ctrl+] / Ctrl+[']]],
+  ['Multi-cursor and selection', [['Select next match of word', 'Ctrl+D'], ['Select all matches of word', 'Ctrl+Shift+L'], ['Add cursor above / below', 'Ctrl+Alt+Up / Ctrl+Alt+Down'], ['Add cursor anywhere', 'Alt+Click'], ['Column (box) selection', 'Shift+Alt+Drag'], ['Undo last cursor', 'Ctrl+U'], ['Back to one cursor', 'Esc'], ['Jump to matching bracket', 'Ctrl+Shift+\\']]],
+  ['Find', [['Find', 'Ctrl+F'], ['Find next / previous', 'F3 / Shift+F3'], ['Replace', 'Ctrl+H'], ['Go to line', 'Ctrl+G']]],
+  ['Programs', [['Open my programs', 'Ctrl+O'], ['New program', 'Ctrl+Alt+N'], ['Code screenshot', 'Ctrl+Shift+S']]],
+  ['Edit', [['Format document', 'Shift+Alt+F'], ['Format selected lines', 'Ctrl+K Ctrl+F'], ['Toggle line comment', 'Ctrl+/'], ['Toggle block comment', 'Shift+Alt+A'], ['Autocomplete', 'Ctrl+Space'], ['Undo / redo', 'Ctrl+Z / Ctrl+Y']]],
+];
+
+const cm = CodeMirror($('ed'), {
+  value: current.code,
+  mode: LANGS[lang].mode, theme: 'cc', lineNumbers: true, indentUnit: 4, tabSize: 4,
+  matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true,
+  gutters: ['marks', 'CodeMirror-linenumbers'],
+  highlightSelectionMatches: { showToken: false, minChars: 2, delay: 80 },
+  // VS Code mouse: Alt+Click adds a cursor, Shift+Alt+drag selects a column.
+  configureMouse: (c, repeat, ev) => (ev.altKey && ev.shiftKey ? { unit: 'rectangle' } : ev.altKey ? { addNew: true } : {}),
+  extraKeys: vsKeys(),
+});
+let saveTimer;
+const save = () => {
+  current.code = cm.getValue(); current.updated = Date.now();
+  if (persistPrograms()) $('dirty').classList.remove('dirty');
+  if (!$('progs').classList.contains('hide')) renderPrograms();
+};
+cm.on('change', (c, ch) => {
+  $('dirty').classList.add('dirty');
+  clearTimeout(saveTimer); saveTimer = setTimeout(save, 600);
+  clearMarks();
+  if (ch.origin === '+input' && /^[A-Za-z_]$/.test(ch.text[0])) {
+    const tok = c.getTokenAt(c.getCursor());
+    if (tok.type !== 'comment' && tok.type !== 'string' && tok.string.length >= 2 && !c.state.completionActive)
+      c.showHint({ hint, completeSingle: false });
+  }
+});
+cm.on('cursorActivity', () => { const p = cm.getCursor(); $('cursor').textContent = `Ln ${p.line + 1}, Col ${p.ch + 1}`; });
+
+let marks = [];
+function clearMarks() {
+  if (!marks.length) return;
+  cm.clearGutter('marks');
+  for (const l of marks) cm.removeLineClass(l, 'background');
+  marks = [];
+}
+function markLine(line, kind, msg) {
+  if (line < 0 || line >= cm.lineCount()) return;
+  const h = cm.addLineClass(line, 'background', 'ln-' + kind);
+  const el = document.createElement('div'); el.className = 'mk ' + kind; el.title = msg;
+  const existing = cm.lineInfo(line).gutterMarkers;
+  if (!existing || kind === 'error') cm.setGutterMarker(line, 'marks', el);
+  marks.push(h);
+}
+
+/* ---------- options ---------- */
+const optIds = ['opt', 'limit', 'argv', 'wall', 'fstyle', 'wrapOut'];
+const opts = store.get('opts', {});
+for (const id of optIds) if (id in opts) { const el = $(id); if (el.type === 'checkbox') el.checked = opts[id]; else el.value = opts[id]; }
+const saveOpts = () => {
+  const o = store.get('opts', {}); for (const k of optIds) { const el = $(k); o[k] = el.type === 'checkbox' ? el.checked : el.value; }
+  o['std.' + lang] = $('std').value; store.set('opts', o);
+};
+for (const id of [...optIds, 'std']) $(id).addEventListener('change', saveOpts);
+const applyWrap = () => $('term').classList.toggle('wrap', $('wrapOut').checked);
+$('wrapOut').addEventListener('change', applyWrap);
+let fs = store.get('fs', 14);
+const applyFs = () => { document.documentElement.style.setProperty('--fs', fs + 'px'); cm.refresh(); };
+$('fsUp').onclick = () => { fs = Math.min(24, fs + 1); store.set('fs', fs); applyFs(); };
+$('fsDown').onclick = () => { fs = Math.max(11, fs - 1); store.set('fs', fs); applyFs(); };
+applyFs();
+document.addEventListener('click', (e) => { if (!$('opts').contains(e.target)) $('opts').open = false; });
+
+/* ---------- language ---------- */
+function applyLang() {
+  const L = LANGS[lang];
+  $('langC').setAttribute('aria-pressed', lang === 'c');
+  $('langCpp').setAttribute('aria-pressed', lang === 'cpp');
+  $('fileName').textContent = current.name;
+  document.title = lang === 'cpp' ? 'codenrun | C++ Playground' : 'codenrun | C Playground';
+  const savedStd = store.get('opts', {})['std.' + lang] || L.defStd;
+  $('std').innerHTML = L.stds.map(([v, n]) => `<option value="${v}"${v === savedStd ? ' selected' : ''}>${n} (${v})</option>`).join('');
+  $('examples').innerHTML = '<option value="">Examples</option>' + L.examples.map(([n], i) => `<option value="${i}">${esc(n)}</option>`).join('');
+}
+function openProgram(p) {
+  if (running) { toast('Stop the program first'); return; }
+  clearTimeout(saveTimer); save();
+  current = p; lang = p.lang;
+  applyLang();
+  cm.setOption('mode', LANGS[lang].mode);
+  cm.setValue(p.code); cm.clearHistory(); clearMarks();
+  $('dirty').classList.remove('dirty');
+  persistPrograms();
+  if (!$('progs').classList.contains('hide')) renderPrograms();
+}
+function newProgram(pLang, name, code) {
+  const p = { id: uid(), name: uniqueName(name), lang: pLang, code, updated: Date.now() };
+  programs.push(p); openProgram(p);
+  return p;
+}
+// The C / C++ switch opens your most recent program in that language, or starts one.
+function switchLang(next) {
+  if (next === lang || running) return;
+  const recent = programs.filter((p) => p.lang === next).sort((a, b) => b.updated - a.updated)[0];
+  if (recent) openProgram(recent); else newProgram(next, LANGS[next].file, LANGS[next].hello);
+}
+$('langC').onclick = () => switchLang('c');
+$('langCpp').onclick = () => switchLang('cpp');
+applyLang();
+
+$('examples').onchange = (e) => {
+  const ex = LANGS[lang].examples[e.target.value]; e.target.value = '';
+  if (!ex) return;
+  cm.setValue(ex[1]); cm.focus(); save();
+};
+$('resetBtn').onclick = () => { cm.setValue(LANGS[lang].hello); save(); cm.focus(); };
+$('copyBtn').onclick = async () => {
+  try { await navigator.clipboard.writeText(cm.getValue()); toast('Code copied'); }
+  catch { cm.execCommand('selectAll'); cm.focus(); toast('Press Ctrl+C to copy'); }
+};
+async function openSource(f) {
+  if (f.size > 1e6) return toast('File is larger than 1 MB');
+  newProgram(langOfName(f.name) || lang, f.name, await f.text());
+  toast('Opened ' + f.name + ' as a new program');
+}
+$('openBtn').onclick = () => $('file').click();
+$('file').onchange = async (e) => { const f = e.target.files[0]; if (f) await openSource(f); e.target.value = ''; };
+for (const ev of ['dragover', 'drop']) $('ed').addEventListener(ev, async (e) => {
+  const f = e.dataTransfer?.files?.[0]; if (!f) return;
+  e.preventDefault(); e.stopPropagation();
+  if (ev === 'drop') await openSource(f);
+}, true);
+
+/* ---------- saving files ----------
+ * On claude.ai the page asks the host's downloads capability (the viewer confirms the save);
+ * everywhere else (opened from disk, Vercel) a normal browser download is used. */
+let dlNs = null;
+const dlReady = typeof window.claude?.use === 'function' ? window.claude.use('downloads').then((n) => (dlNs = n)).catch(() => null) : Promise.resolve(null);
+async function saveFile(filename, blob) {
+  if (typeof window.claude?.use === 'function') {
+    await dlReady;
+    if (dlNs) {
+      try { await dlNs.save({ filename, data: blob }); return true; }
+      catch (e) { if (e && e.code === 'declined') return false; if (e && e.code === 'rate_limited') { toast('A save is already waiting for your answer'); return false; } }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  return true;
+}
+
+/* ---------- programs panel ---------- */
+const ago = (t) => {
+  const s = (Date.now() - t) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + ' min ago';
+  if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+  return new Date(t).toLocaleDateString();
+};
+function storageUsed() { let n = 0; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('cplay.')) n += k.length + (localStorage.getItem(k) || '').length; } } catch {} return n * 2; }
+function renderPrograms() {
+  const q = $('progSearch').value.trim().toLowerCase();
+  const list = programs.filter((p) => !q || p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)).sort((a, b) => b.updated - a.updated);
+  const ic = (n) => ICONS[n] ? icon(n) : '';
+  $('plist').innerHTML = list.length ? list.map((p) => `<div class="pitem" data-id="${esc(p.id)}" aria-current="${p.id === current.id}">
+      <button class="popen" type="button" title="Open ${esc(p.name)}"><span class="pname">${esc(p.name)}</span><span class="pmeta">${LANGS[p.lang].label}, ${ago(p.updated)}, ${fmtSize(new Blob([p.code]).size)}</span></button>
+      <span class="pact"><button type="button" data-act="rename" title="Rename" aria-label="Rename ${esc(p.name)}">${ic('pencil')}</button><button type="button" data-act="dup" title="Duplicate" aria-label="Duplicate ${esc(p.name)}">${ic('copy-plus')}</button><button type="button" data-act="del" title="Delete" aria-label="Delete ${esc(p.name)}">${ic('trash-2')}</button></span>
+    </div>`).join('') : `<p class="empty">${q ? 'No programs match your search.' : 'No programs yet.'}</p>`;
+  $('progUsage').textContent = `${programs.length} program${programs.length === 1 ? '' : 's'}, ${fmtSize(storageUsed())} of browser storage used`;
+}
+function toggleProgs(open) {
+  open = open ?? $('progs').classList.contains('hide');
+  $('progs').classList.toggle('hide', !open);
+  $('progBtn').setAttribute('aria-expanded', open);
+  if (open) { save(); renderPrograms(); $('progSearch').focus(); } else cm.focus();
+}
+$('progBtn').onclick = () => toggleProgs();
+$('progSearch').oninput = renderPrograms;
+$('progSearch').onkeydown = (e) => { if (e.key === 'Escape') toggleProgs(false); };
+$('progNew').onclick = () => { newProgram(lang, LANGS[lang].file.replace('main', 'program'), LANGS[lang].hello); toggleProgs(false); toast('New program: ' + current.name); };
+$('plist').onclick = (e) => {
+  const item = e.target.closest('.pitem'); if (!item) return;
+  const p = programs.find((x) => x.id === item.dataset.id); if (!p) return;
+  const act = e.target.closest('button')?.dataset.act;
+  if (!act) { if (e.target.closest('.popen')) { openProgram(p); toggleProgs(false); } return; }
+  if (act === 'dup') { const c = { id: uid(), name: uniqueName(p.name), lang: p.lang, code: p.id === current.id ? cm.getValue() : p.code, updated: Date.now() }; programs.push(c); persistPrograms(); renderPrograms(); toast('Duplicated as ' + c.name); }
+  if (act === 'rename') {
+    const input = document.createElement('input'); input.className = 'prename'; input.value = p.name; input.setAttribute('aria-label', 'New name');
+    item.querySelector('.popen').replaceWith(input); input.focus(); input.select();
+    const done = (ok) => {
+      if (input.dataset.done) return; input.dataset.done = 1;
+      const name = input.value.trim();
+      if (ok && name && name !== p.name) {
+        p.name = uniqueName(name, p.id);
+        const l = langOfName(p.name);
+        if (l && l !== p.lang) { p.lang = l; if (p.id === current.id) { lang = l; cm.setOption('mode', LANGS[l].mode); } }
+        p.updated = Date.now(); persistPrograms();
+        if (p.id === current.id) applyLang();
+      }
+      renderPrograms();
+    };
+    input.onkeydown = (ev) => { if (ev.key === 'Enter') done(true); else if (ev.key === 'Escape') { ev.stopPropagation(); done(false); } };
+    input.onblur = () => done(true);
+  }
+  if (act === 'del') {
+    const b = e.target.closest('button');
+    if (!b.classList.contains('confirm')) { b.classList.add('confirm'); b.textContent = 'Delete?'; setTimeout(() => { if (b.isConnected) renderPrograms(); }, 3000); return; }
+    programs = programs.filter((x) => x.id !== p.id);
+    if (p.id === current.id) {
+      const next = programs.sort((a, c) => c.updated - a.updated)[0];
+      if (next) { current = next; lang = next.lang; applyLang(); cm.setOption('mode', LANGS[lang].mode); cm.setValue(next.code); cm.clearHistory(); }
+      else { programs.push(current = { id: uid(), name: LANGS[lang].file, lang, code: LANGS[lang].hello, updated: Date.now() }); applyLang(); cm.setValue(current.code); }
+    }
+    persistPrograms(); renderPrograms(); toast('Deleted ' + p.name);
+  }
+};
+$('progExport').onclick = async () => {
+  save();
+  const json = JSON.stringify({ app: 'c-playground', version: 1, exported: new Date().toISOString(), programs: programs.map(({ name, lang: l, code, updated }) => ({ name, lang: l, code, updated })) }, null, 2);
+  if (await saveFile('c-playground-programs.json', new Blob([json], { type: 'application/json' }))) toast(`Exported ${programs.length} programs`);
+};
+$('progImport').onclick = () => $('progFile').click();
+$('progFile').onchange = async (e) => {
+  let added = 0;
+  for (const f of e.target.files) {
+    if (f.size > 2e6) { toast(f.name + ' is too large'); continue; }
+    const text = await f.text();
+    if (/\.json$/i.test(f.name)) {
+      try {
+        const data = JSON.parse(text);
+        for (const p of data.programs || []) {
+          if (typeof p.code !== 'string' || typeof p.name !== 'string') continue;
+          programs.push({ id: uid(), name: uniqueName(p.name), lang: p.lang === 'cpp' ? 'cpp' : 'c', code: p.code, updated: +p.updated || Date.now() }); added++;
+        }
+      } catch { toast(f.name + ' is not a valid backup'); }
+    } else { programs.push({ id: uid(), name: uniqueName(f.name), lang: langOfName(f.name) || lang, code: text, updated: Date.now() }); added++; }
+  }
+  e.target.value = '';
+  persistPrograms(); renderPrograms(); if (added) toast(`Imported ${added} program${added === 1 ? '' : 's'}`);
+};
+
+/* ---------- code screenshot (drawn on a canvas, exported as PNG) ---------- */
+const SHOT_THEMES = {
+  sea: { bg: ['#0a2540', '#1d5288'], win: '#081d33', border: null, text: '#dce9f7', num: '#4f7398', title: '#8fb0cf', rule: '#16406a', term: '#061a2e', termInk: '#e6f1fc', label: '#8fb0cf',
+         tok: { keyword: '#ff5c8a', type: '#c3a6ff', 'variable-3': '#c3a6ff', meta: '#ff9ab6', string: '#9be7b5', 'string-2': '#9be7b5', number: '#ffd27a', atom: '#ffd27a', comment: '#6a8db0', def: '#8fd3ff', builtin: '#8fd3ff', operator: '#a9c6e3' } },
+  sketch: { bg: ['#fbfaf6', '#fbfaf6'], win: '#fffefb', border: '#1f2a44', text: '#1f2a44', num: '#9aa3ba', title: '#1f2a44', rule: '#1f2a44', term: '#fffbe6', termInk: '#1f2a44', label: '#5b6683', margin: '#ff9db6',
+            tok: { keyword: '#d3124f', type: '#6a3fd1', 'variable-3': '#6a3fd1', meta: '#b0285b', string: '#11804a', 'string-2': '#11804a', number: '#a35d00', atom: '#a35d00', comment: '#7a8499', def: '#0f63c4', builtin: '#0f63c4', operator: '#36506b' } },
+};
+function outputLines() {
+  const parts = [];
+  for (const el of term.children) if (el.classList.contains('ob') || el.classList.contains('diag')) parts.push(el.textContent);
+  return parts.join('').replace(/\s+$/, '').split('\n').slice(-30);
+}
+async function drawShot() {
+  try { await Promise.all(['15px "JetBrains Mono"', 'italic 15px "JetBrains Mono"', '700 28px Caveat', '13px "Hanken Grotesk"'].map((f) => document.fonts.load(f))); } catch {}
+  const T = SHOT_THEMES[$('shotTheme').value], sketch = $('shotTheme').value === 'sketch';
+  const pad = +$('shotPad').value, nums = $('shotNums').checked;
+  let first = 0, src = cm.getValue();
+  if ($('shotSel').checked && cm.somethingSelected()) {
+    const r = cm.listSelections()[0];
+    first = Math.min(r.anchor.line, r.head.line);
+    src = cm.getRange({ line: first, ch: 0 }, { line: Math.max(r.anchor.line, r.head.line) });
+  }
+  src = src.replace(/\t/g, '    ').replace(/\s+$/, '');
+  const MAXL = 300, MAXC = 140;
+  const lines = [[]];
+  CodeMirror.runMode(src, LANGS[lang].mode, (text, style) => { if (text === '\n') lines.push([]); else lines[lines.length - 1].push([text, style || '']); });
+  if (lines.length > MAXL) { lines.length = MAXL; lines.push([['...', 'comment']]); }
+  const out = $('shotOut').checked ? outputLines().filter((l, i, a) => a.length > 1 || l) : [];
+  const FS = 15, LH = 24, IN = 22, HEAD = 46;
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  x.font = `${FS}px "JetBrains Mono", monospace`;
+  const cw = x.measureText('M').width;
+  const lineChars = (l) => l.reduce((n, [t]) => n + t.length, 0);
+  const longest = Math.min(MAXC, Math.max(20, ...lines.map(lineChars), ...out.map((l) => Math.min(l.length, MAXC))));
+  const gutter = nums ? String(first + lines.length).length * cw + 26 : 0;
+  const winW = Math.max(460, Math.ceil(gutter + longest * cw + IN * 2));
+  const outH = out.length ? 18 + 26 + out.length * LH : 0;
+  const winH = HEAD + IN + lines.length * LH + IN - 6 + outH;
+  const shadow = sketch ? 7 : 0;
+  const W = winW + pad * 2 + shadow, H = winH + pad * 2 + shadow, S = 2;
+  c.width = W * S; c.height = H * S; x.scale(S, S);
+  // background
+  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, T.bg[0]); g.addColorStop(1, T.bg[1]);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  if (sketch) { x.fillStyle = '#cdd3e2'; for (let yy = 10; yy < H; yy += 20) for (let xx = 10; xx < W; xx += 20) { x.beginPath(); x.arc(xx, yy, 1.1, 0, 7); x.fill(); } }
+  // window
+  const wx = pad, wy = pad, R = sketch ? 16 : 12;
+  const rr = (X, Y, w, h, r) => { x.beginPath(); x.roundRect(X, Y, w, h, r); };
+  if (sketch) { x.fillStyle = T.border; rr(wx + shadow, wy + shadow, winW, winH, R); x.fill(); }
+  else { x.save(); x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 40; x.shadowOffsetY = 16; x.fillStyle = T.win; rr(wx, wy, winW, winH, R); x.fill(); x.restore(); }
+  x.fillStyle = T.win; rr(wx, wy, winW, winH, R); x.fill();
+  if (sketch) { x.lineWidth = 2.5; x.strokeStyle = T.border; x.stroke(); }
+  // title bar
+  ['#ff5c8a', '#ffd27a', '#7be0a8'].forEach((col, i) => { x.fillStyle = col; x.beginPath(); x.arc(wx + 22 + i * 20, wy + HEAD / 2, 6, 0, 7); x.fill(); if (sketch) { x.lineWidth = 1.5; x.strokeStyle = T.border; x.stroke(); } });
+  const title = current.name;
+  if (sketch) {
+    x.font = '700 26px Caveat, cursive'; const tw = x.measureText(title).width, tx = wx + winW / 2 - tw / 2;
+    x.fillStyle = '#ffe066'; x.fillRect(tx - 4, wy + HEAD / 2 + 1, tw + 8, 10);
+    x.fillStyle = T.title; x.textBaseline = 'middle'; x.fillText(title, tx, wy + HEAD / 2);
+  } else {
+    x.font = '13px "Hanken Grotesk", sans-serif'; x.fillStyle = T.title; x.textBaseline = 'middle'; x.textAlign = 'center';
+    x.fillText(title, wx + winW / 2, wy + HEAD / 2); x.textAlign = 'left';
+  }
+  x.strokeStyle = T.rule; x.lineWidth = sketch ? 2 : 1;
+  if (sketch) x.setLineDash([6, 5]);
+  x.beginPath(); x.moveTo(wx + (sketch ? 0 : 0), wy + HEAD); x.lineTo(wx + winW, wy + HEAD); x.stroke(); x.setLineDash([]);
+  // code
+  const top = wy + HEAD + IN, left = wx + IN + gutter;
+  if (sketch && nums) { x.strokeStyle = T.margin; x.lineWidth = 2; x.beginPath(); x.moveTo(left - 12, wy + HEAD + 2); x.lineTo(left - 12, top + lines.length * LH + 4); x.stroke(); }
+  x.textBaseline = 'alphabetic';
+  lines.forEach((toks, i) => {
+    const y = top + i * LH + 16;
+    if (nums) { x.font = `${FS}px "JetBrains Mono", monospace`; x.fillStyle = T.num; x.textAlign = 'right'; x.fillText(String(first + i + 1), left - 20, y); x.textAlign = 'left'; }
+    let col = 0;
+    for (const [text, style] of toks) {
+      if (col >= MAXC) break;
+      let t = text; if (col + t.length > MAXC) t = t.slice(0, MAXC - col - 3) + '...';
+      const key = style.split(' ').find((k) => T.tok[k]);
+      x.font = `${style.includes('comment') ? 'italic ' : ''}${FS}px "JetBrains Mono", monospace`;
+      x.fillStyle = key ? T.tok[key] : T.text;
+      x.fillText(t, left + col * cw, y);
+      col += t.length;
+    }
+  });
+  // output
+  if (out.length) {
+    const oy = top + lines.length * LH + IN - 6;
+    x.fillStyle = T.term; x.beginPath(); x.roundRect(wx + (sketch ? 1.5 : 0), oy, winW - (sketch ? 3 : 0), outH - (sketch ? 1.5 : 0), [0, 0, R - 2, R - 2]); x.fill();
+    x.strokeStyle = T.rule; x.lineWidth = sketch ? 2 : 1; if (sketch) x.setLineDash([6, 5]);
+    x.beginPath(); x.moveTo(wx, oy); x.lineTo(wx + winW, oy); x.stroke(); x.setLineDash([]);
+    x.font = sketch ? '18px "Patrick Hand", cursive' : '12px "Hanken Grotesk", sans-serif'; x.fillStyle = T.label; x.fillText('Output', wx + IN, oy + 24);
+    x.font = `${FS}px "JetBrains Mono", monospace`; x.fillStyle = T.termInk;
+    out.forEach((l, i) => x.fillText(l.length > MAXC ? l.slice(0, MAXC - 3) + '...' : l, wx + IN, oy + 26 + 16 + i * LH));
+  }
+  return c;
+}
+let shotBlob = null, shotUrl = '';
+async function renderShot() {
+  const c = await drawShot();
+  shotBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
+  if (shotUrl) URL.revokeObjectURL(shotUrl);
+  shotUrl = URL.createObjectURL(shotBlob);
+  $('shotImg').src = shotUrl;
+  $('shotInfo').textContent = `${c.width} x ${c.height} px`;
+}
+function openShot() {
+  $('shotSel').checked = cm.somethingSelected();
+  $('shotSel').disabled = !cm.somethingSelected();
+  $('shotTheme').value = document.documentElement.dataset.ui === 'sketch' ? 'sketch' : 'sea';
+  $('shotOut').disabled = !term.querySelector('.ob');
+  if ($('shotOut').disabled) $('shotOut').checked = false;
+  keysReturn = document.activeElement;
+  $('shot').classList.remove('hide'); $('shotClose').focus();
+  renderShot();
+}
+const closeShot = () => { $('shot').classList.add('hide'); cm.focus(); };
+$('shotBtn').onclick = openShot;
+$('shotClose').onclick = closeShot;
+$('shot').addEventListener('click', (e) => { if (e.target.id === 'shot') closeShot(); });
+for (const id of ['shotTheme', 'shotPad', 'shotNums', 'shotOut', 'shotSel']) $(id).addEventListener('change', renderShot);
+$('shotDl').onclick = async () => {
+  if (!shotBlob) return;
+  if (await saveFile(current.name.replace(/\.[^.]+$/, '') + '.png', shotBlob)) toast('Screenshot saved');
+};
+$('shotCopy').onclick = async () => {
+  try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': shotBlob })]); toast('Image copied'); }
+  catch { toast('Copying images is blocked here. Right-click the preview and choose Copy image.'); }
+};
+
+/* ---------- formatter (clang-format 23, loaded on first use) ---------- */
+const FORMAT_STYLES = {
+  kr: '{BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 100, IndentCaseLabels: true, AllowShortIfStatementsOnASingleLine: WithoutElse, AllowShortLoopsOnASingleLine: true, AllowShortBlocksOnASingleLine: Never, AllowShortFunctionsOnASingleLine: Empty, AllowShortCaseLabelsOnASingleLine: true}',
+  allman: '{BasedOnStyle: Microsoft, ColumnLimit: 100}',
+  google: '{BasedOnStyle: Google}',
+  llvm: '{BasedOnStyle: LLVM}',
+};
+let formatterReady = null;
+function loadFormatter() {
+  if (!formatterReady) formatterReady = (async () => {
+    const library = window.ClangFormatLib ? Promise.resolve() : loadScript('clang/format-23.js', 'Missing formatter script');
+    const [bytes] = await Promise.all([loadFormatterBytes(), library]);
+    ClangFormatLib.initSync(await WebAssembly.compile(bytes));
+  })().catch((e) => { formatterReady = null; throw e; });
+  return formatterReady;
+}
+async function loadFormatterBytes() {
+  if (FILE_MODE) {
+    const binary = atob((await loadAssetScript('clang/bin/clang-format.wasm.b64.txt')).trim());
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+  const response = await fetch(runtimePath + 'bin/clang-format.wasm');
+  if (!response.ok) throw new Error('HTTP ' + response.status);
+  return response.arrayBuffer();
+}
+async function formatCode(selectionOnly) {
+  if (running) return;
+  const btn = $('fmtBtn'); btn.disabled = true;
+  try {
+    await loadFormatter();
+    const src = cm.getValue(), file = LANGS[lang].file, style = FORMAT_STYLES[$('fstyle').value] || FORMAT_STYLES.kr;
+    let out;
+    if (selectionOnly && cm.somethingSelected()) {
+      const r = cm.listSelections()[0];
+      out = ClangFormatLib.format_line_range(src, Math.min(r.anchor.line, r.head.line) + 1, Math.max(r.anchor.line, r.head.line) + 1, file, style);
+    } else out = ClangFormatLib.format(src, file, style);
+    if (out === src) { toast('Already formatted'); return; }
+    const cur = cm.getCursor(), top = cm.getScrollInfo().top;
+    cm.operation(() => {
+      cm.replaceRange(out, { line: 0, ch: 0 }, { line: cm.lastLine() });
+      cm.setCursor({ line: Math.min(cur.line, cm.lastLine()), ch: cur.ch });
+    });
+    cm.scrollTo(null, top);
+    toast('Formatted');
+  } catch (e) {
+    toast('Could not format: ' + String(e.message || e).split('\n')[0]);
+  } finally { btn.disabled = false; cm.focus(); }
+}
+$('fmtBtn').onclick = () => formatCode(false);
+
+/* ---------- shortcuts panel ---------- */
+const kbd = (s) => s.split(' / ').map((alt) => alt.split(' ').map((chord) => `<kbd>${esc(chord)}</kbd>`).join(' ')).join(' <span>/</span> ');
+$('keysGrid').innerHTML = SHORTCUTS.map(([group, rows]) => `<h3>${esc(group)}</h3>` + rows.map(([what, keys]) => `<div class="krow"><span>${esc(what)}</span><span>${kbd(keys)}</span></div>`).join('')).join('');
+let keysReturn = null;
+function openKeys() { keysReturn = document.activeElement; $('keys').classList.remove('hide'); $('keysClose').focus(); }
+function closeKeys() { $('keys').classList.add('hide'); (keysReturn || cm).focus?.(); }
+$('keysBtn').onclick = openKeys;
+$('keysClose').onclick = closeKeys;
+$('keys').addEventListener('click', (e) => { if (e.target.id === 'keys') closeKeys(); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('keys').classList.contains('hide')) { e.preventDefault(); closeKeys(); }
+  else if (e.key === 'Escape' && !$('shot').classList.contains('hide')) { e.preventDefault(); closeShot(); }
+  else if (e.key === 'Escape' && !$('progs').classList.contains('hide') && !e.target.closest('.prename')) { e.preventDefault(); toggleProgs(false); }
+  else if (e.key === 'F1' && !cm.hasFocus()) { e.preventDefault(); openKeys(); }
+});
+
+/* split pane */
+{
+  const g = $('gutter'), work = $('work');
+  let split = store.get('split', 58);
+  const apply = () => { work.style.setProperty('--split', split + '%'); cm.refresh(); };
+  apply();
+  g.addEventListener('pointerdown', (e) => {
+    g.setPointerCapture(e.pointerId); g.classList.add('drag');
+    const r = work.getBoundingClientRect();
+    const move = (ev) => { split = Math.max(25, Math.min(80, ((ev.clientX - r.left) / r.width) * 100)); apply(); };
+    const up = () => { g.classList.remove('drag'); g.removeEventListener('pointermove', move); store.set('split', split); };
+    g.addEventListener('pointermove', move); g.addEventListener('pointerup', up, { once: true });
+  });
+  g.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') split = Math.max(25, split - 3); else if (e.key === 'ArrowRight') split = Math.min(80, split + 3); else return;
+    apply(); store.set('split', split);
+  });
+}
+
+/* ---------- terminal ---------- */
+const term = $('term');
+let outNode = null;
+// Output goes into blocks of about 32 KB that start on a line boundary, so adding more output only
+// lays out the newest block. Very long output keeps the last ~1.5 million characters on screen.
+let curBlock = null, blockLen = 0, shownLen = 0, trimmed = false;
+const BLOCK = 32768, KEEP = 1500000;
+function outBlock() {
+  if (curBlock && term.lastChild === curBlock && !(blockLen > BLOCK && curBlock.textContent.endsWith('\n'))) return curBlock;
+  curBlock = document.createElement('div'); curBlock.className = 'ob'; blockLen = 0; outNode = null;
+  term.appendChild(curBlock);
+  return curBlock;
+}
+function trimOutput() {
+  if (shownLen <= KEEP) return;
+  let first = term.firstElementChild;
+  while (shownLen > KEEP * 0.8 && first && first !== curBlock) {
+    const next = first.nextElementSibling;
+    if (first.classList.contains('ob')) shownLen -= first.textContent.length;
+    first.remove(); first = next;
+  }
+  if (!trimmed) { trimmed = true; const n = document.createElement('div'); n.className = 'meta'; n.textContent = 'Earlier output was trimmed to keep the page fast.'; term.prepend(n); }
+}
+function resetOutput() { term.textContent = ''; outNode = null; curBlock = null; blockLen = 0; shownLen = 0; trimmed = false; }
+function append(text, cls) {
+  if (!text) return;
+  const b = outBlock();
+  if (cls) { const s = document.createElement('span'); s.className = cls; s.textContent = text; b.appendChild(s); outNode = null; }
+  else {
+    if (!outNode || outNode.parentNode !== b) { outNode = document.createTextNode(''); b.appendChild(outNode); }
+    outNode.appendData(text);
+  }
+  blockLen += text.length; shownLen += text.length;
+  trimOutput();
+  scheduleStick();
+}
+const stick = () => { term.scrollTop = term.scrollHeight; };
+let stickQueued = false;
+const scheduleStick = () => { if (!stickQueued) { stickQueued = true; requestAnimationFrame(() => { stickQueued = false; stick(); }); } };
+function meta(text, kind) { const s = document.createElement('span'); s.className = 'meta ' + (kind || ''); s.textContent = text; term.appendChild(s); outNode = null; stick(); }
+function welcome() {
+  term.innerHTML = `<div class="hello"><b>Ready when you are.</b> Write C or C++ on the left and press <kbd>Run</kbd> or <kbd>Ctrl+Enter</kbd>. Programs that read input pause here and wait for you to type, just like a real terminal.<br><br>Your code is compiled by real Clang 22 inside this browser tab. Nothing is sent to a server. The first load reads about 39&nbsp;MB, which your browser then caches.</div>`;
+  outNode = null;
+}
+welcome();
+applyWrap();
+$('clearBtn').onclick = () => { if (!running) welcome(); else { resetOutput(); } };
+term.addEventListener('click', () => { const i = $('stdin'); if (i && !getSelection().toString()) i.focus(); });
+
+/* ---------- virtual files ---------- */
+const enc = new TextEncoder(), dec = new TextDecoder();
+const toB64 = (u) => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+const fromB64 = (b) => Uint8Array.from(atob(b), (c) => c.charCodeAt(0));
+let vfs = {};
+try { for (const [k, v] of Object.entries(store.get('files', {}))) vfs[k] = fromB64(v); } catch { vfs = {}; }
+if (!Object.keys(vfs).length) vfs['input.txt'] = enc.encode('10 20 30\nhello from input.txt\n');
+let curFile = Object.keys(vfs)[0] || '';
+function saveFiles() {
+  const o = {}; let size = 0;
+  for (const [k, v] of Object.entries(vfs)) { size += v.length; if (size > 3e6) break; o[k] = toB64(v); }
+  store.set('files', o);
+}
+const fmtSize = (n) => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+function renderFiles() {
+  const names = Object.keys(vfs).sort();
+  $('fileCount').textContent = names.length;
+  $('flist').innerHTML = names.length
+    ? names.map((n) => `<button type="button" data-f="${esc(n)}" aria-current="${n === curFile}"><span>${esc(n)}</span><small>${fmtSize(vfs[n].length)}</small></button>`).join('')
+    : '<p>No files yet. Programs that open a file for writing create it here.</p>';
+  $('fname').value = curFile;
+  $('ftext').value = curFile && vfs[curFile] ? dec.decode(vfs[curFile]) : '';
+}
+$('flist').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; curFile = b.dataset.f; renderFiles(); };
+$('filesBtn').onclick = () => {
+  const open = $('files').classList.toggle('hide') === false;
+  $('filesBtn').setAttribute('aria-expanded', open);
+  if (open) renderFiles();
+};
+$('fSave').onclick = () => {
+  const name = $('fname').value.trim().replace(/^\/+/, '');
+  if (!name || /[\\:*?"<>|]/.test(name)) return toast('Enter a valid file name');
+  if (curFile && curFile !== name) delete vfs[curFile];
+  vfs[name] = enc.encode($('ftext').value); curFile = name; saveFiles(); renderFiles(); toast('Saved ' + name);
+};
+$('fDel').onclick = () => { if (!curFile) return; delete vfs[curFile]; toast('Deleted ' + curFile); curFile = Object.keys(vfs)[0] || ''; saveFiles(); renderFiles(); };
+$('fNew').onclick = () => { curFile = ''; renderFiles(); $('fname').value = 'new.txt'; $('fname').focus(); $('fname').select(); };
+$('fUp').onclick = () => $('fUpload').click();
+$('fUpload').onchange = async (e) => {
+  for (const f of e.target.files) { if (f.size > 4e6) { toast(f.name + ' is over 4 MB'); continue; } vfs[f.name] = new Uint8Array(await f.arrayBuffer()); curFile = f.name; }
+  e.target.value = ''; saveFiles(); renderFiles();
+};
+renderFiles();
+
+/* ---------- compiler ---------- */
+let compiler;
+let compilerBoot;
+const baseUrl = FILE_MODE ? 'https://offline.invalid/clang/' : new URL(useBrotliRuntime ? brotliRuntimePath : runtimePath, location.href).href;
+let compileSeq = 0;
+const compileWaiters = new Map();
+function onCompilerMessage({ data }) {
+  if (data.type === 'ready') {
+    engine.ready = true; engine.version = data.version;
+    $('engine').classList.add('ready'); $('engineTxt').textContent = `Clang ${data.version || '22'} ready`; $('prog').classList.add('hide');
+    if (queued) { queued = false; setRunning(false); run(); }
+  } else if (data.type === 'fatal') {
+    engine.failed = true; $('engine').classList.add('bad'); $('engineTxt').textContent = 'Compiler failed to load'; $('prog').classList.add('hide');
+    $('runLbl').textContent = 'Run';
+    queued = false;
+    for (const resolve of compileWaiters.values()) resolve({ ok: false, diagnostics: [] });
+    compileWaiters.clear();
+    if (running) setRunning(false);
+    meta('Could not load the compiler: ' + data.message + (FILE_MODE ? '' : '\nCheck your connection and reload the page.'), 'bad');
+  } else if (data.type === 'fetch') { pageFetch(data); }
+  else if (data.type === 'compiled') { compileWaiters.get(data.id)?.(data); compileWaiters.delete(data.id); }
+}
+function startCompiler() {
+  if (compilerBoot) return;
+  $('engineTxt').textContent = 'Loading compiler';
+  $('prog').classList.remove('hide');
+  $('prog').classList.toggle('pending', !FILE_MODE);
+  compilerBoot = (async () => {
+    if (FILE_MODE && !window.__CC_SRC) {
+      await loadScript('workers.js', 'Missing workers.js. Extract the complete ZIP before opening index.html.');
+    }
+    compiler = makeWorker('compile-worker.js');
+    compiler.onmessage = onCompilerMessage;
+    compiler.onerror = (e) => onCompilerMessage({ data: { type: 'fatal', message: e.message || 'worker error' } });
+    const fallbackBaseUrl = useBrotliRuntime ? new URL(runtimePath, location.href).href : undefined;
+    compiler.postMessage({ type: 'init', baseUrl, fallbackBaseUrl, relayAssets: FILE_MODE });
+  })().catch((e) => onCompilerMessage({ data: { type: 'fatal', message: String(e.message || e) } }));
+}
+cm.on('focus', startCompiler);
+$('runBtn').addEventListener('pointerenter', startCompiler, { once: true });
+const ASSET_BYTES = 38666532;
+let gotBytes = 0;
+// The offline worker asks the page to load assets using script tags.
+async function pageFetch({ id, path }) {
+  try {
+    const text = await loadAssetScript(path);
+    gotBytes += text.length;
+    $('progBar').style.width = Math.min(97, Math.round(gotBytes / ASSET_BYTES * 100)) + '%';
+    const buf = enc.encode(text).buffer;
+    compiler.postMessage({ type: 'fetched', id, ok: true, buf }, [buf]);
+  } catch (e) {
+    compiler.postMessage({ type: 'fetched', id, ok: false, error: String(e && e.message || e) });
+  }
+}
+const compile = (req) => new Promise((res) => { const id = ++compileSeq; compileWaiters.set(id, res); compiler.postMessage({ type: 'compile', id, ...req }); });
+
+/* ---------- run / interactive stdin by replay ---------- */
+function setRunning(on) {
+  running = on;
+  const b = $('runBtn');
+  b.classList.toggle('stop', on);
+  $('runIc').innerHTML = icon(on ? 'square' : 'play');
+  $('runLbl').textContent = on ? 'Stop' : 'Run';
+  b.title = on ? 'Stop the program' : 'Run (Ctrl+Enter)';
+  $('langC').disabled = $('langCpp').disabled = on;
+  if (!on) { $('eofBtn').disabled = true; removeInput(); }
+}
+$('runIc').innerHTML = icon('play');
+function runOrStop() { running || queued ? stop('Stopped by you.') : run(); }
+$('runBtn').onclick = runOrStop;
+
+function stop(reason) {
+  if (queued) { queued = false; setRunning(false); meta('Cancelled.'); return; }
+  killRunner();
+  if (running) { meta(reason, 'bad'); setRunning(false); }
+}
+function killRunner() { clearTimeout(timer); timer = null; if (runner) { runner.terminate(); runner = null; } renderOut(true); }
+
+async function run() {
+  if (running) return;
+  resetOutput(); clearMarks();
+  if (engine.failed) { meta('The compiler failed to load. Reload the page to try again.', 'bad'); return; }
+  setRunning(true);
+  if (!engine.ready) {
+    queued = true;
+    append('Loading the compiler (first time only)\n', 'note');
+    startCompiler();
+    return;
+  }
+
+  const code = cm.getValue();
+  const req = { code, lang, std: $('std').value, opt: $('opt').value, warnings: $('wall').checked };
+  const key = JSON.stringify(req);
+  let bytes = cache.key === key ? cache.bytes : null, compileMs = 0, diags = [];
+  if (!bytes) {
+    append('Compiling\n', 'note');
+    const res = await compile(req);
+    if (!running) return;
+    resetOutput();
+    compileMs = res.ms; diags = res.diagnostics;
+    showDiagnostics(diags);
+    if (!res.ok) { meta(`Compilation failed in ${compileMs} ms`, 'bad'); setRunning(false); $('stats').textContent = `compile ${compileMs} ms`; return; }
+    bytes = res.bytes; cache = { key, bytes };
+  }
+  if (diags.length) append('\n');
+  session = {
+    bytes, compileMs, input: '', eof: false, shown: 0,
+    args: $('argv').value.trim() ? $('argv').value.trim().split(/\s+/) : [],
+    seed: Math.floor(Math.random() * 2 ** 31), startTimeNs: String(BigInt(Date.now()) * 1000000n),
+    totalMs: 0, files: { ...vfs },
+  };
+  execute();
+}
+
+function execute() {
+  killRunner();
+  const s = session;
+  let produced = 0;
+  runner = makeWorker('run-worker.js');
+  runner.onmessage = ({ data }) => {
+    if (data.type === 'out') {
+      for (const [fd, text] of data.chunks) {
+        // On a replay, skip output the user has already seen.
+        const skip = Math.max(0, Math.min(text.length, s.shown - produced));
+        produced += text.length;
+        const fresh = text.slice(skip);
+        if (fresh) { queueOut(fresh, fd === 2 ? 'err' : null); s.shown = produced; }
+      }
+    } else if (data.type === 'done') {
+      const r = data.result;
+      s.totalMs += r.ms;
+      clearTimeout(timer); timer = null; runner.terminate(); runner = null;
+      drainOut(() => { if (r.status === 'input') askInput(); else finish(r); });
+    }
+  };
+  runner.onerror = (e) => { e.preventDefault(); killRunner(); finish({ status: 'error', message: e.message || 'Runner crashed' }); };
+  const limit = +$('limit').value * 1000;
+  timer = setTimeout(() => stop(`Time limit exceeded (${limit / 1000} s). Is there an infinite loop? You can raise the limit in Options.`), limit);
+  runner.postMessage({ type: 'run', bytes: s.bytes, args: s.args, stdin: s.input, eofMode: s.eof, seed: s.seed, startTimeNs: s.startTimeNs, files: s.files, skipChars: s.shown });
+}
+
+// Program output is queued and drawn at most once per animation frame, so a program printing
+// thousands of lines never makes the page do thousands of layouts.
+let outQueue = [], outFrame = 0;
+function queueOut(text, cls) {
+  const last = outQueue[outQueue.length - 1];
+  if (last && last[1] === cls) last[0] += text; else outQueue.push([text, cls]);
+  if (!outFrame) outFrame = requestAnimationFrame(renderOut);
+}
+const FRAME_BUDGET = 65536; // characters drawn per frame; the rest waits for the next frame
+function renderOut(all) {
+  if (outFrame) { cancelAnimationFrame(outFrame); outFrame = 0; }
+  let budget = all === true ? Infinity : FRAME_BUDGET;
+  while (outQueue.length && budget > 0) {
+    const item = outQueue[0];
+    if (item[0].length <= budget) { outQueue.shift(); emit(item[0], item[1]); budget -= item[0].length; }
+    else {
+      let cut = item[0].lastIndexOf('\n', budget); cut = cut > 0 ? cut + 1 : budget;
+      emit(item[0].slice(0, cut), item[1]); item[0] = item[0].slice(cut); budget = 0;
+    }
+  }
+  stick();
+  if (outQueue.length) outFrame = requestAnimationFrame(renderOut);
+}
+// Finish drawing queued output before showing the exit line or an input prompt.
+function drainOut(then) {
+  if (!outQueue.length) { renderOut(true); then(); return; }
+  renderOut();
+  requestAnimationFrame(() => drainOut(then));
+}
+// Handles the clear-screen sequence and drops other terminal escape codes.
+function emit(text, cls) {
+  text.split(/\x1b\[2J/).forEach((part, i) => {
+    if (i > 0) resetOutput();
+    append(part.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, ''), cls);
+  });
+}
+
+function finish(r) {
+  const s = session;
+  let filesChanged = false;
+  if (r.files) {
+    const sig = (o) => JSON.stringify(Object.keys(o).sort().map((k) => [k, o[k].length]));
+    filesChanged = sig(vfs) !== sig(r.files);
+    vfs = r.files; saveFiles();
+    if (!vfs[curFile]) curFile = Object.keys(vfs)[0] || '';
+    renderFiles();
+  }
+  if (outNode && !outNode.data.endsWith('\n')) append('\n');
+  const t = `compile ${s.compileMs ? s.compileMs + ' ms' : 'cached'}, run ${s.totalMs} ms`;
+  if (r.status === 'exit') meta(`Process exited with code ${r.code} (${t})`, r.code === 0 ? 'good' : 'bad');
+  else meta(`${r.message} (${t})`, 'bad');
+  if (filesChanged) meta('Files changed. Open Files to see them.');
+  $('stats').textContent = t;
+  setRunning(false);
+}
+
+function askInput() {
+  removeInput();
+  const wrap = document.createElement('span');
+  wrap.id = 'inwrap';
+  const inp = document.createElement('input');
+  inp.id = 'stdin'; inp.autocomplete = 'off'; inp.spellcheck = false; inp.setAttribute('aria-label', 'Program input');
+  wrap.appendChild(inp);
+  const hint = document.createElement('div');
+  hint.className = 'waiting'; hint.id = 'waitHint';
+  hint.innerHTML = '<i class="dot"></i>Waiting for input. Type and press Enter, or Ctrl+D to end input.';
+  const host = term.lastChild && term.lastChild.classList && term.lastChild.classList.contains('ob') ? term.lastChild : term;
+  host.appendChild(wrap); term.appendChild(hint); outNode = null; stick();
+  $('eofBtn').disabled = false;
+  inp.focus({ preventScroll: true });
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit([inp.value]); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); if (inp.value) submit([inp.value]); sendEOF(); }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !inp.selectionEnd) { e.preventDefault(); stop('Interrupted (Ctrl+C).'); }
+  });
+  inp.addEventListener('paste', (e) => {
+    const text = e.clipboardData?.getData('text') || '';
+    if (!text.includes('\n')) return;
+    e.preventDefault();
+    const lines = (inp.value + text).replace(/\r/g, '').split('\n');
+    const rest = lines.pop();
+    submit(lines, rest);
+  });
+}
+function removeInput() { $('inwrap')?.remove(); $('waitHint')?.remove(); }
+function submit(lines, rest = '') {
+  removeInput();
+  for (const l of lines) { append(l, 'in'); append('\n'); }
+  session.input += lines.map((l) => l + '\n').join('');
+  $('eofBtn').disabled = true;
+  execute();
+  if (rest) setTimeout(() => { const i = $('stdin'); if (i) i.value = rest; }, 0);
+}
+function sendEOF() { if (!running || !session) return; removeInput(); append('^D', 'note'); append('\n'); session.eof = true; $('eofBtn').disabled = true; execute(); }
+$('eofBtn').onclick = sendEOF;
+
+function showDiagnostics(lines) {
+  const re = /^main\.(?:c|cpp):(\d+):(\d+):\s+(fatal error|error|warning|note):\s*(.*)$/;
+  for (const line of lines) {
+    const m = line.match(re);
+    if (m) {
+      const kind = m[3].includes('error') ? 'error' : m[3];
+      const s = document.createElement('span');
+      s.className = 'diag ' + (kind === 'error' ? 'err' : kind === 'warning' ? 'warn' : 'note');
+      s.textContent = line; s.title = 'Click to jump to line ' + m[1];
+      const ln = +m[1] - 1, ch = +m[2] - 1;
+      s.onclick = () => { cm.focus(); cm.setCursor({ line: ln, ch }); cm.scrollIntoView({ line: ln, ch }, 80); };
+      term.appendChild(s); outNode = null;
+      if (kind !== 'note') markLine(ln, kind, m[4]);
+    } else {
+      append(line + '\n', /error/.test(line) ? 'err' : 'note');
+    }
+  }
+}
+
+addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !cm.hasFocus()) { e.preventDefault(); runOrStop(); } });
+}
+</script>
+</body>
+</html>
